@@ -56,8 +56,51 @@ Galaxy4Games) and games like Toon Blast / Royal Match. ✅ = in v1, 🔜 = plann
 - Offline PWA ✅ → **PWABuilder/Bubblewrap APK** (Android) ✅ pipeline; Capacitor for iOS later. 🔜
 
 ## Recommended build order (most impact first)
-1. Wrapped bomb + special-combos (the "big moment" payoffs). 
-2. Jelly + ice blockers + a 2nd objective type (clear jelly) → real level variety.
-3. Star ratings + level map + boosters.
-4. Custom food art + Howler sound pack + music.
-5. Lives/daily/leaderboard meta.
+1. Wrapped bomb + special-combos (the "big moment" payoffs). ✅
+2. Jelly + ice blockers + a 2nd objective type (clear jelly) → real level variety. ✅ (jelly + clear-jelly; ice 🔜)
+3. Per-level board shapes + tighter moves (harder). ✅
+4. Custom Maltese-food SVG art + procedural music loop + sound toggle. ✅ (Howler/real samples 🔜)
+5. Star ratings + level map + boosters. 🔜
+6. Lives/daily/leaderboard meta + monetisation. 🔜
+
+---
+
+## Concept refine (2026-06-30) — full vision vs. what's built
+
+Original Maltese match-3 (NOT a Candy Crush clone — own name, art, pieces, specials, sounds, level themes).
+
+### Pieces — HAVE 6, concept lists 8
+6 on-board is the right number for fair match-3 difficulty (7–8 makes boards unsolvable-feeling).
+- ✅ Built (drawn SVG): pastizz, ftira, ġbejna, qassata, imqaret, figolla.
+- 🔜 Concept additions to swap in per-world for flavour: **Kinnie bottle**, **Luzzu boat**, **Maltese-cross biscuit**, pastizz tal-piżelli vs tal-irkotta. Keep 6 active at a time; rotate art by world.
+
+### Specials — mechanics HAVE, re-theme to Maltese 🔜
+| Concept name | Our mechanic | Status |
+|---|---|---|
+| Kinnie Rocket (match-4) | blast = clears row+col | ✅ mechanic, 🔜 rename+art |
+| Golden Pastizz (match-5) | super = clears one type | ✅ mechanic, 🔜 rename+art |
+| Festa Bomb (L/T) | wrap = 3×3 area blast | ✅ mechanic, 🔜 rename+art |
+| Combo effects (fireworks / bells / Kinnie splash) | special+special combos | ✅ mechanic, 🔜 themed FX |
+
+### Objectives — HAVE 2 of 6
+- ✅ Target score in N moves; ✅ Clear all jelly.
+- 🔜 **Collect X pieces** (e.g. 20 pastizzi); 🔜 **Ingredient drop** (luzzu/bag to bottom row); 🔜 **Clear honey/jam blocks** (spreading blocker); 🔜 **Break frozen tiles** (ice, multi-layer).
+
+### Worlds / map — 🔜 not built
+- 🔜 World map screen with 10 worlds (Village Bakery → Valletta → Mdina Night → Marsaxlokk → Gozo Farm → Blue Lagoon → Festa Week → Three Cities → Dingli Cliffs → Pastizzi Factory).
+- 🔜 Themed backgrounds per world (limestone, balconies, festa flags, luzzi, sea). Currently one dark backdrop.
+- 🔜 **Stars 1–3** per level + saved progress/unlock gating.
+
+### Meta / monetisation — 🔜 not built
+- 🔜 Lives/hearts (5, refill over time). 🔜 Coins. 🔜 Boosters: Extra-5-moves, Rolling Pastizz (line), Kinnie Splash (colour), Festa Firework (area), Maltese Cross (reshuffle) — pre-level + in-level.
+- 🔜 Rewarded ads / premium no-ads pack + exclusive skins. **Note:** ads need an ad-network SDK (AdMob) — only works in the APK build, not the bare PWA; separate integration + a Google AdMob account.
+
+### Sound — HAVE synth, concept wants character
+- ✅ pop ladder, boom, win jingle, NEW procedural music + mute toggle.
+- 🔜 Festa-band win, sad bakery-bell lose, combo **voice lines** ("Mela nice!" / "Prosit!" / "Ejja!") — these need short recorded/TTS audio clips (breaks zero-asset offline unless we embed small files).
+
+### Platform note
+We're building the **web PWA → Android APK** path (this is live). The concept also mentions **Roblox** — that's a totally separate Luau rebuild inside Roblox Studio, not this codebase. Pick one; can't share code.
+
+### MVP checklist (concept) — status
+1. 8×8 grid ✅ · 2. swipe swap ✅ · 3. detect 3+ ✅ · 4. remove ✅ · 5. drop new ✅ · 6. goal counter ✅ · 7. 20 levels (have 8 hand-built + infinite procedural; 🔜 author 20 distinct) · 8. coins+boosters 🔜.
