@@ -3,13 +3,14 @@
   const $ = id => document.getElementById(id);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const ROWS = 8, COLS = 8, PAD = 3;
-  // Real photo-style Maltese pastry pieces (5 distinct types)
+  // Real photo-style Maltese pastry pieces (6 distinct types)
   const TYPES = [
     { e: '🥟', c: '#ecd0a0', img: 'assets/p-irkotta.png' }, // pastizz tal-irkotta (ricotta)
     { e: '🫛', c: '#8cbf4e', img: 'assets/p-pizelli.png' },  // pastizz tal-piżelli (peas)
-    { e: '🥧', c: '#f0c46a', img: 'assets/q-irkotta.png' },  // qassata tal-irkotta
-    { e: '🟢', c: '#6fa83c', img: 'assets/q-pizelli.png' },  // qassata tal-piżelli
     { e: '🍕', c: '#d8442e', img: 'assets/pizza.png' },      // Maltese pizza
+    { e: '🟫', c: '#a25f28', img: 'assets/imqaret.png' },    // imqaret (date)
+    { e: '🍩', c: '#c07e2e', img: 'assets/qaghaq.png' },     // qagħqa tal-għasel (honey ring)
+    { e: '🌸', c: '#f2e6cf', img: 'assets/figolla.png' },    // figolla
   ];
   // Rich glossy Maltese-pastry art in the logo's style (gradients in index.html). 6 distinct colours for fair matching.
   const ICONS = [
@@ -532,9 +533,15 @@
     const ib = $('installBtn'), ix = $('installX');
     if (ib) ib.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('install').classList.add('hide'); });
     if (ix) ix.addEventListener('click', () => { $('install').classList.add('hide'); localStorage.setItem('pc_noinstall', '1'); });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    // On iPhone Safari you must add the app to your home screen before you can play
+    if (isIOS() && !isStandalone() && !forcedLevel) {
+      $('iosgateMsg').innerHTML = "To play, add Pastizzi Crush to your home screen:<br>1. Tap <b>Share</b> " + SHARE_SVG + "<br>2. Choose <b>“Add to Home Screen”</b><br>3. Open it from your home screen 🥟";
+      $('map').classList.add('hide'); $('overlay').classList.add('hide');
+      $('iosgate').classList.remove('hide');
+      return; // block the map/game until installed
+    }
     buildMap();
     if (forcedLevel) playLevel(forcedLevel); else openMap();   // home = level-select map
-    if (isIOS() && !isStandalone()) setTimeout(() => showInstall('ios'), 1200); // iOS has no prompt event — show the how-to
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 })();

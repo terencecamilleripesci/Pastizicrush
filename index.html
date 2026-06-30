@@ -75,6 +75,18 @@
 <div class="flash" id="flash"></div>
 <div class="toast" id="toast"></div>
 
+<!-- iOS gate: must install to play -->
+<div class="iosgate hide" id="iosgate">
+  <img class="iosgate-logo" src="assets/logo.png" alt="Pastizzi Crush">
+  <div class="iosgate-card">
+    <div class="ig-emoji">📲</div>
+    <h2>Install to Play</h2>
+    <p id="iosgateMsg"></p>
+    <div class="ig-arrow">⬇︎</div>
+    <small>Tap Share at the bottom of Safari</small>
+  </div>
+</div>
+
 <!-- Install banner (iOS = step guide, Android = real prompt) -->
 <div class="install hide" id="install">
   <button class="install-x" id="installX" aria-label="Dismiss">✕</button>

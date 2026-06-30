@@ -143,6 +143,21 @@ img.ic{ display:block; }
 .lvl-node.locked .lock{ font-size:1.2rem; }
 .lvl-node.cleared{ border-color:#ffd97a; }
 
+/* iOS install gate (blocks play until added to home screen) */
+.iosgate{ position:fixed; inset:0; z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  background:radial-gradient(circle at 50% 0%, #4a1a1a, transparent 60%), var(--bg); padding:24px;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom)); text-align:center; }
+.iosgate.hide{ display:none; }
+.iosgate-logo{ width:min(70%,260px); height:auto; filter:drop-shadow(0 8px 16px rgba(0,0,0,.5)); }
+.iosgate-card{ background:var(--panel); color:var(--ink); border:3px solid var(--gold); border-radius:20px; padding:22px 24px; max-width:340px; box-shadow:var(--shadow); }
+.iosgate-card .ig-emoji{ font-size:2.6rem; }
+.iosgate-card h2{ color:var(--red); margin:4px 0 8px; font-size:1.5rem; }
+.iosgate-card p{ color:var(--ink); font-size:.95rem; line-height:1.5; }
+.iosgate-card p b{ color:var(--red); }
+.iosgate-card small{ display:block; color:var(--muted); margin-top:6px; font-size:.8rem; }
+.ig-arrow{ font-size:1.8rem; color:var(--azure); animation:bobArrow 1.1s ease-in-out infinite; margin-top:8px; }
+@keyframes bobArrow{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(6px) } }
+
 /* install banner */
 .install{ position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom)); transform:translateX(-50%);
   display:flex; align-items:center; gap:10px; width:calc(100% - 24px); max-width:380px;
