@@ -15,6 +15,18 @@
 </head>
 <body>
 
+<!-- shared 3D gradients for the food art (referenced by every tile) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe49e"/><stop offset=".5" stop-color="#f3b44c"/><stop offset="1" stop-color="#c2801b"/></linearGradient>
+  <linearGradient id="gGold2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd882"/><stop offset="1" stop-color="#c8851f"/></linearGradient>
+  <radialGradient id="gRed" cx=".4" cy=".34" r=".8"><stop offset="0" stop-color="#ff7e54"/><stop offset="1" stop-color="#a81f1c"/></radialGradient>
+  <radialGradient id="gCream" cx=".4" cy=".32" r=".85"><stop offset="0" stop-color="#fff8d2"/><stop offset="1" stop-color="#e6c049"/></radialGradient>
+  <linearGradient id="gBrown" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d99f63"/><stop offset="1" stop-color="#71421d"/></linearGradient>
+  <radialGradient id="gPink" cx=".4" cy=".32" r=".85"><stop offset="0" stop-color="#ffc2db"/><stop offset="1" stop-color="#cf5489"/></radialGradient>
+  <radialGradient id="gPea" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="#c4e472"/><stop offset="1" stop-color="#567f28"/></radialGradient>
+  <radialGradient id="gGloss" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+</defs></svg>
+
 <button id="snd" class="sndbtn" aria-label="Toggle sound">🔊</button>
 
 <header class="hud">

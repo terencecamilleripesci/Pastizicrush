@@ -7,22 +7,36 @@
     { e: '🥟', c: '#F4B23E' }, { e: '🍕', c: '#E14B3B' }, { e: '🧀', c: '#F7E27A' },
     { e: '🥧', c: '#8FB85A' }, { e: '🍩', c: '#C77C46' }, { e: '🍰', c: '#E78BB0' },
   ];
-  // Hand-drawn Maltese-food art (distinct silhouettes help colour-blind play too)
+  // 3D Maltese-pastry art (gradients defined in index.html). Distinct silhouettes + colours for fair matching.
   const ICONS = [
-    // 0 pastizz — golden flaky diamond with ricotta centre
-    "<polygon points='50,9 89,50 50,91 11,50' fill='#f7c558' stroke='#b97f18' stroke-width='4'/><path d='M30,50H70M36,37H64M36,63H64' stroke='#d99a2f' stroke-width='3.4' stroke-linecap='round'/><ellipse cx='50' cy='50' rx='11' ry='6.5' fill='#fff4d8'/>",
-    // 1 ftira — round bread with tomato topping + sesame
-    "<circle cx='50' cy='50' r='40' fill='#e7563f' stroke='#9c281b' stroke-width='4.5'/><circle cx='50' cy='50' r='27' fill='#f06b4f'/><circle cx='42' cy='43' r='3.4' fill='#ffe6bf'/><circle cx='59' cy='46' r='3.4' fill='#ffe6bf'/><circle cx='49' cy='60' r='3.4' fill='#ffe6bf'/><circle cx='61' cy='37' r='3.2' fill='#8ec06a'/>",
-    // 2 ġbejna — cheeselet disc with peppercorns
-    "<ellipse cx='50' cy='55' rx='38' ry='29' fill='#eccf54' stroke='#bd9b27' stroke-width='4'/><ellipse cx='50' cy='45' rx='38' ry='26' fill='#fbeea0'/><circle cx='39' cy='45' r='3.1' fill='#5a4326'/><circle cx='59' cy='41' r='3.1' fill='#5a4326'/><circle cx='52' cy='55' r='3.1' fill='#5a4326'/>",
-    // 3 qassata — green pea pastry pie, crimped edge + vents
-    "<circle cx='50' cy='50' r='38' fill='#9cc35f' stroke='#577d2c' stroke-width='4'/><circle cx='50' cy='50' r='38' fill='none' stroke='#7ba544' stroke-width='6' stroke-dasharray='7 6'/><path d='M40,45 q10,-9 20,0' stroke='#4f7029' stroke-width='3.6' fill='none' stroke-linecap='round'/><path d='M44,58 h12' stroke='#4f7029' stroke-width='3.6' stroke-linecap='round'/>",
-    // 4 imqaret — brown date diamond with lattice
-    "<polygon points='50,15 85,50 50,85 15,50' fill='#c47e44' stroke='#74441b' stroke-width='4'/><polygon points='50,28 72,50 50,72 28,50' fill='#6e3f1c'/><path d='M40,50H60M50,40V60' stroke='#caa06d' stroke-width='3' stroke-linecap='round'/>",
-    // 5 figolla — pink-iced almond heart with cherry
-    "<path d='M50,86 C16,60 24,26 50,41 C76,26 84,60 50,86 Z' fill='#ef9bbd' stroke='#c45f88' stroke-width='4'/><path d='M50,52 C35,40 29,53 37,61 M50,52 C65,40 71,53 63,61' stroke='#fff' stroke-width='4.2' fill='none' stroke-linecap='round'/><circle cx='50' cy='35' r='6' fill='#d33b54'/>",
+    // 0 Pastizz tal-irkotta — flaky golden lens with ricotta peeking out
+    "<path d='M9,50 Q50,15 91,50 Q50,85 9,50 Z' fill='url(#gGold)' stroke='#9c6913' stroke-width='2.5'/>" +
+    "<path d='M22,50 Q50,31 78,50 M24,42 Q50,27 76,42 M24,58 Q50,73 76,58' fill='none' stroke='#b9791a' stroke-width='2' opacity='.75'/>" +
+    "<ellipse cx='50' cy='50' rx='13' ry='7.5' fill='#fff6e2'/><ellipse cx='50' cy='48.5' rx='8.5' ry='4' fill='#fff' opacity='.7'/>",
+    // 1 Maltese pizza — square golden crust, tomato, peas + olive
+    "<rect x='13' y='13' width='74' height='74' rx='15' fill='url(#gGold2)' stroke='#a9781f' stroke-width='3'/>" +
+    "<rect x='22' y='22' width='56' height='56' rx='10' fill='url(#gRed)'/>" +
+    "<circle cx='37' cy='40' r='4' fill='#7fb74c'/><circle cx='61' cy='37' r='4' fill='#7fb74c'/><circle cx='48' cy='60' r='4' fill='#7fb74c'/>" +
+    "<circle cx='63' cy='61' r='5.5' fill='#33241d'/><circle cx='63' cy='61' r='2.2' fill='#7a5436'/>",
+    // 2 Ġbejna — round cheeselet with peppercorns
+    "<ellipse cx='50' cy='59' rx='37' ry='27' fill='#d4b03b'/>" +
+    "<ellipse cx='50' cy='48' rx='37' ry='27' fill='url(#gCream)' stroke='#c19f31' stroke-width='2.5'/>" +
+    "<circle cx='39' cy='46' r='2.8' fill='#5a4326'/><circle cx='61' cy='42' r='2.8' fill='#5a4326'/><circle cx='53' cy='55' r='2.8' fill='#5a4326'/>",
+    // 3 Qassata tal-piżelli — golden crimped ring filled with green peas
+    "<circle cx='50' cy='50' r='40' fill='url(#gGold2)' stroke='#9c6913' stroke-width='2'/>" +
+    "<circle cx='50' cy='50' r='38' fill='none' stroke='#e3aa3c' stroke-width='9' stroke-dasharray='10 6'/>" +
+    "<circle cx='50' cy='50' r='23' fill='url(#gPea)' stroke='#4f7a26' stroke-width='2'/>" +
+    "<circle cx='44' cy='46' r='5' fill='#a9da57'/><circle cx='57' cy='45' r='5' fill='#a9da57'/><circle cx='50' cy='57' r='5' fill='#9ad047'/><circle cx='59' cy='56' r='4' fill='#8cc23f'/><circle cx='41' cy='56' r='4' fill='#8cc23f'/>",
+    // 4 Imqaret — brown date pillow-diamond
+    "<rect x='22' y='22' width='56' height='56' rx='12' transform='rotate(45 50 50)' fill='url(#gBrown)' stroke='#5e3514' stroke-width='2.5'/>" +
+    "<polygon points='50,31 69,50 50,69 31,50' fill='#5a3417' opacity='.82'/>" +
+    "<path d='M41,50H59M50,41V59' stroke='#d3aa72' stroke-width='2.6' stroke-linecap='round' opacity='.7'/>",
+    // 5 Figolla — pink-iced almond heart with cherry
+    "<path d='M50,85 C17,60 24,28 50,42 C76,28 83,60 50,85 Z' fill='url(#gPink)' stroke='#bd5080' stroke-width='2.5'/>" +
+    "<path d='M50,53 C36,42 30,54 38,62 M50,53 C64,42 70,54 62,62' stroke='#fff' stroke-width='4' fill='none' stroke-linecap='round' opacity='.92'/>" +
+    "<circle cx='50' cy='37' r='6' fill='#d8324f'/><circle cx='48' cy='35' r='2' fill='#ff96a6'/>",
   ];
-  const tileSVG = type => `<svg class='ic' viewBox='0 0 100 100'>${ICONS[type]}<ellipse cx='37' cy='30' rx='17' ry='9' fill='#fff' opacity='.26'/></svg>`;
+  const tileSVG = type => `<svg class='ic' viewBox='0 0 100 100'>${ICONS[type]}<ellipse cx='38' cy='31' rx='20' ry='11' fill='url(#gGloss)'/></svg>`;
   // Luzzu boat — the "ingredient" piece you drop to the bottom (not matchable)
   const ING = TYPES.length;
   const ING_BG = 'radial-gradient(circle at 33% 27%, rgba(255,255,255,.6), rgba(255,255,255,0) 46%), #2c6fb0';

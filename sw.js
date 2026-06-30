@@ -1,5 +1,5 @@
 /* Pastizzi Crush — service worker (network-first, offline fallback) */
-const CACHE = 'pastizzi-v9';
+const CACHE = 'pastizzi-v10';
 const ASSETS = ['.', 'index.html', 'css/styles.css', 'js/game.js', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'js/lib/confetti.min.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
