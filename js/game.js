@@ -7,6 +7,22 @@
     { e: '🥟', c: '#F4B23E' }, { e: '🍕', c: '#E14B3B' }, { e: '🧀', c: '#F7E27A' },
     { e: '🥧', c: '#8FB85A' }, { e: '🍩', c: '#C77C46' }, { e: '🍰', c: '#E78BB0' },
   ];
+  // Hand-drawn Maltese-food art (distinct silhouettes help colour-blind play too)
+  const ICONS = [
+    // 0 pastizz — golden flaky diamond with ricotta centre
+    "<polygon points='50,9 89,50 50,91 11,50' fill='#f7c558' stroke='#b97f18' stroke-width='4'/><path d='M30,50H70M36,37H64M36,63H64' stroke='#d99a2f' stroke-width='3.4' stroke-linecap='round'/><ellipse cx='50' cy='50' rx='11' ry='6.5' fill='#fff4d8'/>",
+    // 1 ftira — round bread with tomato topping + sesame
+    "<circle cx='50' cy='50' r='40' fill='#e7563f' stroke='#9c281b' stroke-width='4.5'/><circle cx='50' cy='50' r='27' fill='#f06b4f'/><circle cx='42' cy='43' r='3.4' fill='#ffe6bf'/><circle cx='59' cy='46' r='3.4' fill='#ffe6bf'/><circle cx='49' cy='60' r='3.4' fill='#ffe6bf'/><circle cx='61' cy='37' r='3.2' fill='#8ec06a'/>",
+    // 2 ġbejna — cheeselet disc with peppercorns
+    "<ellipse cx='50' cy='55' rx='38' ry='29' fill='#eccf54' stroke='#bd9b27' stroke-width='4'/><ellipse cx='50' cy='45' rx='38' ry='26' fill='#fbeea0'/><circle cx='39' cy='45' r='3.1' fill='#5a4326'/><circle cx='59' cy='41' r='3.1' fill='#5a4326'/><circle cx='52' cy='55' r='3.1' fill='#5a4326'/>",
+    // 3 qassata — green pea pastry pie, crimped edge + vents
+    "<circle cx='50' cy='50' r='38' fill='#9cc35f' stroke='#577d2c' stroke-width='4'/><circle cx='50' cy='50' r='38' fill='none' stroke='#7ba544' stroke-width='6' stroke-dasharray='7 6'/><path d='M40,45 q10,-9 20,0' stroke='#4f7029' stroke-width='3.6' fill='none' stroke-linecap='round'/><path d='M44,58 h12' stroke='#4f7029' stroke-width='3.6' stroke-linecap='round'/>",
+    // 4 imqaret — brown date diamond with lattice
+    "<polygon points='50,15 85,50 50,85 15,50' fill='#c47e44' stroke='#74441b' stroke-width='4'/><polygon points='50,28 72,50 50,72 28,50' fill='#6e3f1c'/><path d='M40,50H60M50,40V60' stroke='#caa06d' stroke-width='3' stroke-linecap='round'/>",
+    // 5 figolla — pink-iced almond heart with cherry
+    "<path d='M50,86 C16,60 24,26 50,41 C76,26 84,60 50,86 Z' fill='#ef9bbd' stroke='#c45f88' stroke-width='4'/><path d='M50,52 C35,40 29,53 37,61 M50,52 C65,40 71,53 63,61' stroke='#fff' stroke-width='4.2' fill='none' stroke-linecap='round'/><circle cx='50' cy='35' r='6' fill='#d33b54'/>",
+  ];
+  const tileSVG = type => `<svg class='ic' viewBox='0 0 100 100'>${ICONS[type]}<ellipse cx='37' cy='30' rx='17' ry='9' fill='#fff' opacity='.26'/></svg>`;
   // Level design — first few are gentle tutorials, then it ramps.
   // Board shapes — each must be column-contiguous (no playable cell with a hole both above & below it in its column)
   const SHAPES = {
@@ -41,6 +57,7 @@
   let level = 1, moves = 20, score = 0, target = 1000, best = +(localStorage.getItem('pc_best') || 0);
   let overlayAction = 'start';
   let mode = 'score', jellyGrid = null, jellyEls = null, jellyLeft = 0, totalJelly = 0;
+  let muted = localStorage.getItem('pc_mute') === '1';
   let blocked = null;
   const isBlocked = (r, c) => blocked && blocked[r][c];
   function setShape(name) { const fn = SHAPES[name] || SHAPES.full; blocked = Array.from({ length: ROWS }, (_, r) => Array.from({ length: COLS }, (_, c) => !fn(r, c))); }
@@ -49,13 +66,13 @@
   let AC = null;
   function initAudio() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch {} }
   function beep(freq, dur, type = 'triangle', vol = 0.18, slideTo) {
-    if (!AC) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+    if (!AC || muted) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = type; o.frequency.setValueAtTime(freq, t); if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur);
   }
   function noiseBurst(dur = .35, vol = .26) {
-    if (!AC) return; const n = AC.createBufferSource(), buf = AC.createBuffer(1, Math.floor(AC.sampleRate * dur), AC.sampleRate), d = buf.getChannelData(0);
+    if (!AC || muted) return; const n = AC.createBufferSource(), buf = AC.createBuffer(1, Math.floor(AC.sampleRate * dur), AC.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
     n.buffer = buf; const g = AC.createGain(), f = AC.createBiquadFilter(); f.type = 'lowpass';
     f.frequency.setValueAtTime(1900, AC.currentTime); f.frequency.exponentialRampToValueAtTime(220, AC.currentTime + dur);
@@ -74,6 +91,35 @@
     boom: () => { noiseBurst(.36, .28); beep(150, .42, 'sine', .22, 50); note(8, .14, .1, 'square'); },
     win: () => { [0, 2, 4, 5, 7, 9, 10].forEach((s, i) => setTimeout(() => note(s, .22, .2), i * 90)); },
   };
+
+  /* ---------- background music (procedural loop, no files) ---------- */
+  // Gentle Mediterranean-ish arpeggio over a slow chord change. Pure WebAudio so it stays offline.
+  let musicTimer = null, musicGain = null, mStep = 0;
+  const CHORDS = [[0, 4, 7, 12], [-3, 0, 4, 9], [-5, 2, 5, 9], [-1, 2, 7, 11]]; // i / vi / IV / V-ish, semitones from A
+  const MROOT = 220; // A3
+  function mTone(semi, dur, vol, type) {
+    const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+    o.type = type; o.frequency.value = MROOT * Math.pow(2, semi / 12);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
+    o.connect(g).connect(musicGain); o.start(t); o.stop(t + dur + .05);
+  }
+  function startMusic() {
+    if (!AC || muted || musicTimer) return;
+    if (!musicGain) { musicGain = AC.createGain(); musicGain.gain.value = .05; musicGain.connect(AC.destination); }
+    musicTimer = setInterval(() => {
+      const chord = CHORDS[Math.floor(mStep / 8) % CHORDS.length];
+      const semi = chord[mStep % 4] + (mStep % 8 >= 4 ? 12 : 0);
+      mTone(semi + 12, .5, .5, 'triangle');                 // arpeggio pluck
+      if (mStep % 8 === 0) mTone(chord[0] - 12, 1.6, .55, 'sine'); // soft bass on chord change
+      mStep++;
+    }, 300);
+  }
+  function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
+  function setMuted(m) {
+    muted = m; localStorage.setItem('pc_mute', m ? '1' : '0');
+    const b = $('snd'); if (b) { b.textContent = m ? '🔇' : '🔊'; b.classList.toggle('off', m); }
+    if (m) stopMusic(); else { initAudio(); startMusic(); }
+  }
 
   /* ---------- helpers ---------- */
   const inB = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
@@ -97,7 +143,7 @@
   function tileBg(type) { return `radial-gradient(circle at 33% 27%, rgba(255,255,255,.65), rgba(255,255,255,0) 46%), ${TYPES[type].c}`; }
   function makeTile(type, r, c, fromRow) {
     const el = document.createElement('div'); el.className = 'tile';
-    el.innerHTML = `<span class="ic">${TYPES[type].e}</span>`; el.style.background = tileBg(type);
+    el.innerHTML = tileSVG(type); el.style.background = tileBg(type);
     const sz = cell - PAD * 2; el.style.width = sz + 'px'; el.style.height = sz + 'px'; el.style.fontSize = (cell * 0.54) + 'px';
     board.appendChild(el); const t = { el, type, r, c, special: null }; el.__t = t; grid[r][c] = t;
     if (fromRow != null) { t.r = fromRow; setPos(t, true); t.r = r; requestAnimationFrame(() => setPos(t, false)); } else setPos(t, true);
@@ -305,11 +351,12 @@
     else if (moves <= 0) showOverlay('😅', 'Out of moves', mode === 'jelly' ? `<b>${jellyLeft}</b> jelly left — so close!` : `You reached <b>${score.toLocaleString()}</b> of ${target.toLocaleString()}.`, 'Try again', 'retry');
   }
   const forcedLevel = +new URLSearchParams(location.search).get('lvl') || 0;
-  $('ovBtn').addEventListener('click', () => { initAudio(); if (overlayAction === 'next') level++; if (overlayAction === 'start') level = forcedLevel || 1; startLevel(); });
+  $('ovBtn').addEventListener('click', () => { initAudio(); startMusic(); if (overlayAction === 'next') level++; if (overlayAction === 'start') level = forcedLevel || 1; startLevel(); });
 
   window.addEventListener('resize', layout);
   document.addEventListener('DOMContentLoaded', () => {
     $('best').textContent = best.toLocaleString();
+    const sb = $('snd'); if (sb) { sb.textContent = muted ? '🔇' : '🔊'; sb.classList.toggle('off', muted); sb.addEventListener('click', () => setMuted(!muted)); }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 })();
