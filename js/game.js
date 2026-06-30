@@ -7,36 +7,48 @@
     { e: '🥟', c: '#F4B23E' }, { e: '🍕', c: '#E14B3B' }, { e: '🧀', c: '#F7E27A' },
     { e: '🥧', c: '#8FB85A' }, { e: '🍩', c: '#C77C46' }, { e: '🍰', c: '#E78BB0' },
   ];
-  // 3D Maltese-pastry art (gradients defined in index.html). Distinct silhouettes + colours for fair matching.
+  // Rich glossy Maltese-pastry art in the logo's style (gradients in index.html). 6 distinct colours for fair matching.
   const ICONS = [
-    // 0 Pastizz tal-irkotta — flaky golden lens with ricotta peeking out
-    "<path d='M9,50 Q50,15 91,50 Q50,85 9,50 Z' fill='url(#gGold)' stroke='#9c6913' stroke-width='2.5'/>" +
-    "<path d='M22,50 Q50,31 78,50 M24,42 Q50,27 76,42 M24,58 Q50,73 76,58' fill='none' stroke='#b9791a' stroke-width='2' opacity='.75'/>" +
-    "<ellipse cx='50' cy='50' rx='13' ry='7.5' fill='#fff6e2'/><ellipse cx='50' cy='48.5' rx='8.5' ry='4' fill='#fff' opacity='.7'/>",
-    // 1 Maltese pizza — square golden crust, tomato, peas + olive
-    "<rect x='13' y='13' width='74' height='74' rx='15' fill='url(#gGold2)' stroke='#a9781f' stroke-width='3'/>" +
-    "<rect x='22' y='22' width='56' height='56' rx='10' fill='url(#gRed)'/>" +
-    "<circle cx='37' cy='40' r='4' fill='#7fb74c'/><circle cx='61' cy='37' r='4' fill='#7fb74c'/><circle cx='48' cy='60' r='4' fill='#7fb74c'/>" +
-    "<circle cx='63' cy='61' r='5.5' fill='#33241d'/><circle cx='63' cy='61' r='2.2' fill='#7a5436'/>",
-    // 2 Ġbejna — round cheeselet with peppercorns
-    "<ellipse cx='50' cy='59' rx='37' ry='27' fill='#d4b03b'/>" +
-    "<ellipse cx='50' cy='48' rx='37' ry='27' fill='url(#gCream)' stroke='#c19f31' stroke-width='2.5'/>" +
-    "<circle cx='39' cy='46' r='2.8' fill='#5a4326'/><circle cx='61' cy='42' r='2.8' fill='#5a4326'/><circle cx='53' cy='55' r='2.8' fill='#5a4326'/>",
-    // 3 Qassata tal-piżelli — golden crimped ring filled with green peas
-    "<circle cx='50' cy='50' r='40' fill='url(#gGold2)' stroke='#9c6913' stroke-width='2'/>" +
-    "<circle cx='50' cy='50' r='38' fill='none' stroke='#e3aa3c' stroke-width='9' stroke-dasharray='10 6'/>" +
-    "<circle cx='50' cy='50' r='23' fill='url(#gPea)' stroke='#4f7a26' stroke-width='2'/>" +
-    "<circle cx='44' cy='46' r='5' fill='#a9da57'/><circle cx='57' cy='45' r='5' fill='#a9da57'/><circle cx='50' cy='57' r='5' fill='#9ad047'/><circle cx='59' cy='56' r='4' fill='#8cc23f'/><circle cx='41' cy='56' r='4' fill='#8cc23f'/>",
-    // 4 Imqaret — brown date pillow-diamond
-    "<rect x='22' y='22' width='56' height='56' rx='12' transform='rotate(45 50 50)' fill='url(#gBrown)' stroke='#5e3514' stroke-width='2.5'/>" +
-    "<polygon points='50,31 69,50 50,69 31,50' fill='#5a3417' opacity='.82'/>" +
-    "<path d='M41,50H59M50,41V59' stroke='#d3aa72' stroke-width='2.6' stroke-linecap='round' opacity='.7'/>",
-    // 5 Figolla — pink-iced almond heart with cherry
-    "<path d='M50,85 C17,60 24,28 50,42 C76,28 83,60 50,85 Z' fill='url(#gPink)' stroke='#bd5080' stroke-width='2.5'/>" +
-    "<path d='M50,53 C36,42 30,54 38,62 M50,53 C64,42 70,54 62,62' stroke='#fff' stroke-width='4' fill='none' stroke-linecap='round' opacity='.92'/>" +
-    "<circle cx='50' cy='37' r='6' fill='#d8324f'/><circle cx='48' cy='35' r='2' fill='#ff96a6'/>",
+    // 0 Pastizz tal-irkotta — flaky golden lens, many sfoljata layers, ricotta peeking out
+    "<path d='M5,50 Q50,11 95,50 Q50,89 5,50 Z' fill='url(#gGold)' stroke='#915f0e' stroke-width='2'/>" +
+    "<path d='M10,50 Q50,17 90,50' fill='none' stroke='#fff0c4' stroke-width='2' opacity='.8'/>" +
+    "<path d='M13,49 Q50,22 87,49 M17,47 Q50,27 83,47 M21,45 Q50,32 79,45' fill='none' stroke='#c5851d' stroke-width='2.1'/>" +
+    "<path d='M13,51 Q50,78 87,51 M17,53 Q50,73 83,53 M21,55 Q50,68 79,55' fill='none' stroke='#b97c19' stroke-width='2.1'/>" +
+    "<path d='M30,50 Q50,43 70,50 Q50,57 30,50 Z' fill='#fff6e0'/><path d='M35,49 Q50,46 65,49' fill='none' stroke='#ecd6a6' stroke-width='1.5'/>" +
+    "<path d='M22,40 Q50,23 78,40' fill='none' stroke='#ffe7a8' stroke-width='2.4' opacity='.7' stroke-linecap='round'/>",
+    // 1 Maltese pizza — golden crust, tomato sauce, cheese, peas, olive, basil
+    "<rect x='11' y='11' width='78' height='78' rx='17' fill='url(#gGold2)' stroke='#a9781f' stroke-width='2.5'/>" +
+    "<rect x='11' y='11' width='78' height='78' rx='17' fill='none' stroke='#ffe9b8' stroke-width='2' opacity='.5'/>" +
+    "<rect x='20' y='20' width='60' height='60' rx='12' fill='url(#gRed)'/>" +
+    "<ellipse cx='35' cy='34' rx='7' ry='5' fill='#ffe7bd' opacity='.85'/><ellipse cx='63' cy='45' rx='6' ry='4' fill='#ffe7bd' opacity='.8'/>" +
+    "<circle cx='39' cy='42' r='4' fill='#84bd50' stroke='#5e8a31' stroke-width='1'/><circle cx='57' cy='34' r='4' fill='#84bd50' stroke='#5e8a31' stroke-width='1'/><circle cx='46' cy='60' r='4' fill='#84bd50' stroke='#5e8a31' stroke-width='1'/>" +
+    "<circle cx='64' cy='62' r='6' fill='#2b1f1a'/><circle cx='64' cy='62' r='2.4' fill='#8a5f3c'/>",
+    // 2 Ġbejna — round peppered cheeselet, basket ridges
+    "<ellipse cx='50' cy='61' rx='37' ry='25' fill='#cfa733'/>" +
+    "<ellipse cx='50' cy='48' rx='37' ry='26' fill='url(#gCream)' stroke='#bd9a2c' stroke-width='2'/>" +
+    "<path d='M18,46 H82 M22,39 H78 M22,54 H78' fill='none' stroke='#e3cf80' stroke-width='1.6' opacity='.6'/>" +
+    "<circle cx='38' cy='44' r='2.6' fill='#352616'/><circle cx='60' cy='41' r='2.6' fill='#352616'/><circle cx='52' cy='54' r='2.6' fill='#352616'/><circle cx='44' cy='52' r='2' fill='#352616'/>" +
+    "<ellipse cx='40' cy='40' rx='13' ry='5' fill='#fff' opacity='.45'/>",
+    // 3 Qassata tal-piżelli — round pastry, crimped rim, green-pea filling
+    "<circle cx='50' cy='53' r='38' fill='url(#gGoldDeep)'/>" +
+    "<circle cx='50' cy='49' r='38' fill='url(#gGold2)' stroke='#915f0e' stroke-width='2'/>" +
+    "<circle cx='50' cy='49' r='33' fill='none' stroke='#e6ad3e' stroke-width='8' stroke-dasharray='9 6' stroke-linecap='round'/>" +
+    "<circle cx='50' cy='49' r='21' fill='url(#gPea)' stroke='#4d7825' stroke-width='1.5'/>" +
+    "<circle cx='44' cy='45' r='4.6' fill='#a9da57'/><circle cx='57' cy='44' r='4.6' fill='#a9da57'/><circle cx='50' cy='55' r='4.6' fill='#9ad047'/><circle cx='58' cy='55' r='3.6' fill='#8cc23f'/><circle cx='42' cy='54' r='3.6' fill='#8cc23f'/>" +
+    "<circle cx='42.5' cy='43.5' r='1.4' fill='#e6ffb0'/><circle cx='55.5' cy='42.5' r='1.4' fill='#e6ffb0'/>",
+    // 4 Imqaret — fried date pillow-diamond, sugar-dusted, date slit
+    "<rect x='22' y='22' width='56' height='56' rx='13' transform='rotate(45 50 50)' fill='url(#gBrown)' stroke='#5a3214' stroke-width='2'/>" +
+    "<rect x='28' y='28' width='44' height='44' rx='10' transform='rotate(45 50 50)' fill='none' stroke='#caa06d' stroke-width='1.6' opacity='.45'/>" +
+    "<path d='M37,50 H63' stroke='#3a2110' stroke-width='5' stroke-linecap='round'/>" +
+    "<path d='M40,50 H60' stroke='#7a4a22' stroke-width='2' stroke-linecap='round'/>" +
+    "<circle cx='40' cy='37' r='1.5' fill='#fff' opacity='.75'/><circle cx='60' cy='38' r='1.5' fill='#fff' opacity='.7'/><circle cx='38' cy='60' r='1.5' fill='#fff' opacity='.7'/><circle cx='62' cy='61' r='1.5' fill='#fff' opacity='.65'/><circle cx='50' cy='32' r='1.3' fill='#fff' opacity='.6'/>",
+    // 5 Figolla — pink-iced almond heart, sprinkles + cherry
+    "<path d='M50,86 C15,60 23,26 50,42 C77,26 85,60 50,86 Z' fill='url(#gPink)' stroke='#bd5080' stroke-width='2'/>" +
+    "<path d='M50,53 C35,41 28,54 37,63 M50,53 C65,41 72,54 63,63' fill='none' stroke='#fff' stroke-width='4' stroke-linecap='round' opacity='.9'/>" +
+    "<line x1='38' y1='58' x2='42' y2='60' stroke='#ffe04a' stroke-width='2.4' stroke-linecap='round'/><line x1='58' y1='56' x2='62' y2='59' stroke='#5ec8ff' stroke-width='2.4' stroke-linecap='round'/><line x1='48' y1='70' x2='52' y2='71' stroke='#7be06a' stroke-width='2.4' stroke-linecap='round'/>" +
+    "<circle cx='50' cy='37' r='6.5' fill='url(#gCherry)'/><circle cx='47.5' cy='34.5' r='2' fill='#ffb3c0'/>",
   ];
-  const tileSVG = type => `<svg class='ic' viewBox='0 0 100 100'>${ICONS[type]}<ellipse cx='38' cy='31' rx='20' ry='11' fill='url(#gGloss)'/></svg>`;
+  const tileSVG = type => `<svg class='ic' viewBox='0 0 100 100'>${ICONS[type]}<ellipse cx='38' cy='30' rx='19' ry='10' fill='url(#gGloss)'/></svg>`;
   // Luzzu boat — the "ingredient" piece you drop to the bottom (not matchable)
   const ING = TYPES.length;
   const ING_BG = 'radial-gradient(circle at 33% 27%, rgba(255,255,255,.6), rgba(255,255,255,0) 46%), #2c6fb0';
@@ -123,27 +135,43 @@
     win: () => { [0, 2, 4, 5, 7, 9, 10].forEach((s, i) => setTimeout(() => note(s, .22, .2), i * 90)); },
   };
 
-  /* ---------- background music (procedural loop, no files) ---------- */
-  // Gentle Mediterranean-ish arpeggio over a slow chord change. Pure WebAudio so it stays offline.
-  let musicTimer = null, musicGain = null, mStep = 0;
-  const CHORDS = [[0, 4, 7, 12], [-3, 0, 4, 9], [-5, 2, 5, 9], [-1, 2, 7, 11]]; // i / vi / IV / V-ish, semitones from A
+  /* ---------- background music (procedural, no files) ---------- */
+  // Warm Mediterranean loop: soft pad + plucked arpeggio + bass + gentle melody. Pure WebAudio (offline).
+  let musicTimer = null, musicGain = null, musicFilter = null, mStep = 0;
   const MROOT = 220; // A3
-  function mTone(semi, dur, vol, type) {
+  const PROG = [[0, 4, 7, 11], [7, 11, 14, 17], [-3, 0, 4, 9], [-7, -3, 0, 5]]; // I–V–vi–IV with 7ths, warm
+  const MELO = [12, 11, 9, 7, 9, 11, 12, 16, 14, 12, 11, 9];                    // gentle topline
+  function mVoice(semi, dur, vol, type, dest) {
     const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = type; o.frequency.value = MROOT * Math.pow(2, semi / 12);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
-    o.connect(g).connect(musicGain); o.start(t); o.stop(t + dur + .05);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .04); g.gain.exponentialRampToValueAtTime(.0006, t + dur);
+    o.connect(g).connect(dest || musicGain); o.start(t); o.stop(t + dur + .05);
+  }
+  function mPad(chord) {                                   // sustained, detuned, swelling chord
+    const t = AC.currentTime, dur = 2.8;
+    chord.forEach(semi => [0, 0.35].forEach(det => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sawtooth'; o.frequency.value = MROOT * Math.pow(2, semi / 12) / 2 * (1 + det / 100);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + .7); g.gain.linearRampToValueAtTime(.04, t + dur - .7); g.gain.exponentialRampToValueAtTime(.0004, t + dur);
+      o.connect(g).connect(musicFilter); o.start(t); o.stop(t + dur + .1);
+    }));
   }
   function startMusic() {
     if (!AC || muted || musicTimer) return;
-    if (!musicGain) { musicGain = AC.createGain(); musicGain.gain.value = .05; musicGain.connect(AC.destination); }
-    musicTimer = setInterval(() => {
-      const chord = CHORDS[Math.floor(mStep / 8) % CHORDS.length];
-      const semi = chord[mStep % 4] + (mStep % 8 >= 4 ? 12 : 0);
-      mTone(semi + 12, .5, .5, 'triangle');                 // arpeggio pluck
-      if (mStep % 8 === 0) mTone(chord[0] - 12, 1.6, .55, 'sine'); // soft bass on chord change
+    if (!musicGain) {
+      musicGain = AC.createGain(); musicGain.gain.value = .38;
+      musicFilter = AC.createBiquadFilter(); musicFilter.type = 'lowpass'; musicFilter.frequency.value = 1500; musicFilter.Q.value = .6;
+      musicFilter.connect(musicGain); musicGain.connect(AC.destination);
+    }
+    mStep = 0;
+    const beat = () => {
+      const chord = PROG[Math.floor(mStep / 8) % PROG.length], step = mStep % 8;
+      if (step === 0) { mPad(chord); mVoice(chord[0] - 12, 1.5, .3, 'sine'); }     // pad + bass on the bar
+      if (step % 2 === 0) mVoice(chord[(step / 2) % chord.length] + 12, .45, .2, 'triangle'); // arpeggio
+      if (mStep % 4 === 2) mVoice(MELO[Math.floor(mStep / 4) % MELO.length] + 12, .6, .13, 'sine'); // melody
       mStep++;
-    }, 300);
+    };
+    beat(); musicTimer = setInterval(beat, 340);
   }
   function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
   function setMuted(m) {
