@@ -55,7 +55,8 @@ main{ width:min(100%,460px); }
 .tile{ position:absolute; display:flex; align-items:center; justify-content:center; z-index:2;
   background:transparent !important; line-height:1; cursor:pointer; transition:transform .17s cubic-bezier(.34,1.56,.64,1), opacity .16s ease;
   will-change:transform; }
-.tile .ic{ pointer-events:none; width:100%; height:100%; filter:drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
+.tile .ic{ pointer-events:none; width:100%; height:100%; object-fit:contain; -webkit-user-drag:none; user-drag:none; filter:drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
+img.ic{ display:block; }
 
 /* sound toggle */
 .sndbtn{ position:fixed; top:10px; right:10px; z-index:55; width:42px; height:42px; border-radius:50%;

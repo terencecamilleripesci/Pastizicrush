@@ -3,9 +3,13 @@
   const $ = id => document.getElementById(id);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const ROWS = 8, COLS = 8, PAD = 3;
+  // Real photo-style Maltese pastry pieces (5 distinct types)
   const TYPES = [
-    { e: '🥟', c: '#F4B23E' }, { e: '🍕', c: '#E14B3B' }, { e: '🧀', c: '#F7E27A' },
-    { e: '🥧', c: '#8FB85A' }, { e: '🍩', c: '#C77C46' }, { e: '🍰', c: '#E78BB0' },
+    { e: '🥟', c: '#ecd0a0', img: 'assets/p-irkotta.png' }, // pastizz tal-irkotta (ricotta)
+    { e: '🫛', c: '#8cbf4e', img: 'assets/p-pizelli.png' },  // pastizz tal-piżelli (peas)
+    { e: '🥧', c: '#f0c46a', img: 'assets/q-irkotta.png' },  // qassata tal-irkotta
+    { e: '🟢', c: '#6fa83c', img: 'assets/q-pizelli.png' },  // qassata tal-piżelli
+    { e: '🍕', c: '#d8442e', img: 'assets/pizza.png' },      // Maltese pizza
   ];
   // Rich glossy Maltese-pastry art in the logo's style (gradients in index.html). 6 distinct colours for fair matching.
   const ICONS = [
@@ -202,7 +206,7 @@
   function tileBg(type) { return `radial-gradient(circle at 33% 27%, rgba(255,255,255,.65), rgba(255,255,255,0) 46%), ${TYPES[type].c}`; }
   function makeTile(type, r, c, fromRow) {
     const el = document.createElement('div'); el.className = 'tile' + (type === ING ? ' ing' : '');
-    el.innerHTML = type === ING ? luzzuSVG() : tileSVG(type); // no bubble bg — the 3D art is the piece
+    el.innerHTML = type === ING ? luzzuSVG() : `<img class="ic" src="${TYPES[type].img}" alt="" draggable="false">`; // real pastry photo
     const sz = cell - PAD * 2; el.style.width = sz + 'px'; el.style.height = sz + 'px'; el.style.fontSize = (cell * 0.54) + 'px';
     board.appendChild(el); const t = { el, type, r, c, special: null }; el.__t = t; grid[r][c] = t;
     if (fromRow != null) { t.r = fromRow; setPos(t, true); t.r = r; requestAnimationFrame(() => setPos(t, false)); } else setPos(t, true);
@@ -429,12 +433,13 @@
   document.addEventListener('pointercancel', () => { down = null; });
 
   /* ---------- HUD / levels ---------- */
+  const pieceMini = t => `<img src="${TYPES[t].img}" alt="" style="height:1.15em;vertical-align:-3px">`;
   function updateHUD() {
     $('level').textContent = level; $('moves').textContent = moves; $('score').textContent = score.toLocaleString();
     if (score > best) { best = score; localStorage.setItem('pc_best', best); }
     $('best').textContent = best.toLocaleString();
     if (mode === 'clear') { const lbl = coatKind && coatKind.some(row => row.includes('ice')) ? '❄️ Ice' : coatKind && coatKind.some(row => row.includes('jam')) ? '🍯 Jam' : '🍓 Jelly'; $('goalfill').style.width = (totalJelly ? (totalJelly - jellyLeft) / totalJelly * 100 : 100) + '%'; $('goaltext').textContent = `${lbl} left: ${jellyLeft}`; }
-    else if (mode === 'collect') { $('goalfill').style.width = Math.min(100, collected / collectGoal * 100) + '%'; $('goaltext').textContent = `Collect ${TYPES[collectType].e} ${Math.min(collected, collectGoal)}/${collectGoal}`; }
+    else if (mode === 'collect') { $('goalfill').style.width = Math.min(100, collected / collectGoal * 100) + '%'; $('goaltext').innerHTML = `Collect ${pieceMini(collectType)} ${Math.min(collected, collectGoal)}/${collectGoal}`; }
     else if (mode === 'drop') { $('goalfill').style.width = (totalDrop ? (totalDrop - dropLeft) / totalDrop * 100 : 100) + '%'; $('goaltext').textContent = `⛵ Luzzi to deliver: ${dropLeft}`; }
     else { $('goalfill').style.width = Math.min(100, score / target * 100) + '%'; $('goaltext').textContent = `Target ${target.toLocaleString()}`; }
   }
@@ -455,7 +460,7 @@
   function checkEnd() {
     const won = mode === 'clear' ? jellyLeft <= 0 : mode === 'collect' ? collected >= collectGoal : mode === 'drop' ? dropLeft <= 0 : score >= target;
     const goalMsg = mode === 'clear' ? `All cleared! Score <b>${score.toLocaleString()}</b>.`
-      : mode === 'collect' ? `Collected all ${collectGoal} ${TYPES[collectType].e}!`
+      : mode === 'collect' ? `Collected all ${collectGoal} ${pieceMini(collectType)}!`
         : mode === 'drop' ? `All luzzi delivered! ⛵` : `You scored <b>${score.toLocaleString()}</b>.`;
     if (won) {
       const startMoves = levelCfg(level).moves || 1, frac = moves / startMoves;
@@ -467,7 +472,7 @@
     }
     else if (moves <= 0) {
       const miss = mode === 'clear' ? `<b>${jellyLeft}</b> left — so close!`
-        : mode === 'collect' ? `<b>${collectGoal - collected}</b> more ${TYPES[collectType].e} needed!`
+        : mode === 'collect' ? `<b>${collectGoal - collected}</b> more ${pieceMini(collectType)} needed!`
           : mode === 'drop' ? `<b>${dropLeft}</b> luzzi still at sea!` : `You reached <b>${score.toLocaleString()}</b> of ${target.toLocaleString()}.`;
       showOverlay('😅', 'Out of moves', miss, 'Try again', 'retry');
     }
