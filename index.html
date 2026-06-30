@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pastizzi Crush</title>
+<meta name="description" content="A Maltese match-3 game — swap pastizzi, ftira, ġbejna & more. Match 3 to pop!">
+<meta name="theme-color" content="#7a1f1f">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥟</text></svg>">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="hud">
+  <div class="title">Pastizzi&nbsp;<span>Crush</span></div>
+  <div class="stats">
+    <div class="stat"><small>Level</small><b id="level">1</b></div>
+    <div class="stat"><small>Moves</small><b id="moves">20</b></div>
+    <div class="stat"><small>Score</small><b id="score">0</b></div>
+    <div class="stat"><small>Best</small><b id="best">0</b></div>
+  </div>
+  <div class="goal">
+    <div class="goalbar"><span id="goalfill"></span></div>
+    <small id="goaltext">Target 1,000</small>
+  </div>
+</header>
+
+<main>
+  <div id="board" class="board"></div>
+</main>
+
+<p class="hint">Tap a tile then a neighbour — or swipe — to swap. Match 3+ in a row or column.</p>
+
+<!-- Overlay (win / lose / start) -->
+<div class="overlay" id="overlay">
+  <div class="panel">
+    <div class="emoji" id="ovEmoji">🥟</div>
+    <h2 id="ovTitle">Pastizzi Crush</h2>
+    <p id="ovText">🥟 Tap a treat, then a neighbour — or swipe — to swap.<br>🍕 Line up <b>3 or more</b> of the same to pop them.<br>🎯 Reach the target before your moves run out!</p>
+    <button class="btn" id="ovBtn">Play</button>
+  </div>
+</div>
+
+<div class="flash" id="flash"></div>
+<div class="toast" id="toast"></div>
+
+<script src="js/lib/confetti.min.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
