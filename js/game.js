@@ -174,7 +174,7 @@
   function tileBg(type) { return `radial-gradient(circle at 33% 27%, rgba(255,255,255,.65), rgba(255,255,255,0) 46%), ${TYPES[type].c}`; }
   function makeTile(type, r, c, fromRow) {
     const el = document.createElement('div'); el.className = 'tile' + (type === ING ? ' ing' : '');
-    el.innerHTML = type === ING ? luzzuSVG() : tileSVG(type); el.style.background = type === ING ? ING_BG : tileBg(type);
+    el.innerHTML = type === ING ? luzzuSVG() : tileSVG(type); // no bubble bg — the 3D art is the piece
     const sz = cell - PAD * 2; el.style.width = sz + 'px'; el.style.height = sz + 'px'; el.style.fontSize = (cell * 0.54) + 'px';
     board.appendChild(el); const t = { el, type, r, c, special: null }; el.__t = t; grid[r][c] = t;
     if (fromRow != null) { t.r = fromRow; setPos(t, true); t.r = r; requestAnimationFrame(() => setPos(t, false)); } else setPos(t, true);
@@ -411,7 +411,7 @@
     else { $('goalfill').style.width = Math.min(100, score / target * 100) + '%'; $('goaltext').textContent = `Target ${target.toLocaleString()}`; }
   }
   function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1600); }
-  function showOverlay(emoji, title, text, btn, action) { $('ovEmoji').textContent = emoji; $('ovTitle').textContent = title; $('ovText').innerHTML = text; $('ovBtn').textContent = btn; overlayAction = action; $('overlay').classList.remove('hide'); }
+  function showOverlay(emoji, title, text, btn, action) { $('ovEmoji').textContent = emoji; $('ovStars').classList.add('hide'); $('ovTitle').textContent = title; $('ovText').innerHTML = text; $('ovBtn').textContent = btn; overlayAction = action; $('overlay').classList.remove('hide'); }
   async function startLevel() {
     const cfg = levelCfg(level); mode = cfg.type || 'score'; target = cfg.target || 0; moves = cfg.moves; score = 0; selected = null;
     collected = 0; collectGoal = 0; dropLeft = 0; totalDrop = 0;
@@ -429,7 +429,14 @@
     const goalMsg = mode === 'clear' ? `All cleared! Score <b>${score.toLocaleString()}</b>.`
       : mode === 'collect' ? `Collected all ${collectGoal} ${TYPES[collectType].e}!`
         : mode === 'drop' ? `All luzzi delivered! ⛵` : `You scored <b>${score.toLocaleString()}</b>.`;
-    if (won) { sfx.win(); confettiRain(); showOverlay('🎉', `Level ${level} cleared!`, goalMsg, 'Next level', 'next'); }
+    if (won) {
+      const startMoves = levelCfg(level).moves || 1, frac = moves / startMoves;
+      const st = frac >= 0.5 ? 3 : frac >= 0.25 ? 2 : 1;
+      saveStars(level, st); unlockNext(level);
+      sfx.win(); confettiRain();
+      showOverlay('🎉', `Level ${level} cleared!`, goalMsg, 'Next level', 'next');
+      $('ovStars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st); $('ovStars').classList.remove('hide');
+    }
     else if (moves <= 0) {
       const miss = mode === 'clear' ? `<b>${jellyLeft}</b> left — so close!`
         : mode === 'collect' ? `<b>${collectGoal - collected}</b> more ${TYPES[collectType].e} needed!`
@@ -437,13 +444,64 @@
       showOverlay('😅', 'Out of moves', miss, 'Try again', 'retry');
     }
   }
+  /* ---------- level-select map + progress ---------- */
+  const MAXLEVELS = 40, WORLD_SIZE = 5;
+  const WORLD_NAMES = ['Village Bakery', 'Valletta Streets', 'Mdina Night', 'Marsaxlokk Market', 'Gozo Farm', 'Blue Lagoon', 'Festa Week', 'Three Cities', 'Dingli Cliffs', 'Pastizzi Factory'];
+  const getUnlocked = () => Math.max(1, +(localStorage.getItem('pc_unlocked') || 1));
+  const getStars = () => { try { return JSON.parse(localStorage.getItem('pc_stars') || '{}'); } catch { return {}; } };
+  function saveStars(lv, st) { const s = getStars(); if ((s[lv] || 0) < st) { s[lv] = st; localStorage.setItem('pc_stars', JSON.stringify(s)); } }
+  function unlockNext(lv) { if (lv + 1 > getUnlocked()) localStorage.setItem('pc_unlocked', Math.min(MAXLEVELS, lv + 1)); }
+  function buildMap() {
+    const list = $('mapList'); if (!list) return;
+    const unlocked = getUnlocked(), stars = getStars(); list.innerHTML = '';
+    for (let w = 0; w * WORLD_SIZE < MAXLEVELS; w++) {
+      const sec = document.createElement('div'); sec.className = 'world';
+      const nm = document.createElement('div'); nm.className = 'world-name'; nm.textContent = `${w + 1}. ${WORLD_NAMES[w] || ('World ' + (w + 1))}`; sec.appendChild(nm);
+      const row = document.createElement('div'); row.className = 'world-row';
+      for (let i = 0; i < WORLD_SIZE; i++) {
+        const lv = w * WORLD_SIZE + i + 1; if (lv > MAXLEVELS) break;
+        const locked = lv > unlocked, st = stars[lv] || 0;
+        const node = document.createElement('button'); node.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '');
+        node.innerHTML = locked ? `<span class="lock">🔒</span>` : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
+        if (!locked) node.addEventListener('click', () => playLevel(lv));
+        row.appendChild(node);
+      }
+      sec.appendChild(row); list.appendChild(sec);
+    }
+  }
+  function playLevel(lv) { initAudio(); startMusic(); level = lv; $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel(); }
+  function openMap() { buildMap(); $('overlay').classList.add('hide'); $('map').classList.remove('hide'); }
+
   const forcedLevel = +new URLSearchParams(location.search).get('lvl') || 0;
   $('ovBtn').addEventListener('click', () => { initAudio(); startMusic(); if (overlayAction === 'next') level++; if (overlayAction === 'start') level = forcedLevel || 1; startLevel(); });
+  $('ovMap').addEventListener('click', openMap);
 
   window.addEventListener('resize', layout);
+
+  /* ---------- install prompt (iOS instructions / Android native) ---------- */
+  let deferredPrompt = null;
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  const SHARE_SVG = "<svg class='shareico' width='15' height='17' viewBox='0 0 50 60' fill='none' stroke='#1f7ab5' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'><path d='M25 5 V37'/><path d='M14 16 L25 5 L36 16'/><path d='M12 26 H6 V54 H44 V26 H38'/></svg>";
+  function showInstall(kind) {
+    if (isStandalone() || localStorage.getItem('pc_noinstall') === '1') return;
+    const el = $('install'), msg = $('installMsg'), btn = $('installBtn'); if (!el) return;
+    el.classList.toggle('ios', kind === 'ios');
+    if (kind === 'ios') { msg.innerHTML = "<b>Install Pastizzi Crush</b><br>1. Tap Share " + SHARE_SVG + "&nbsp; in the Safari bar<br>2. Choose <b>“Add to Home Screen”</b>"; btn.style.display = 'none'; }
+    else { msg.innerHTML = "<b>Install Pastizzi Crush</b><br>Add it to your home screen"; btn.style.display = ''; }
+    el.classList.remove('hide');
+  }
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; showInstall('android'); });
+
   document.addEventListener('DOMContentLoaded', () => {
     $('best').textContent = best.toLocaleString();
     const sb = $('snd'); if (sb) { sb.textContent = muted ? '🔇' : '🔊'; sb.classList.toggle('off', muted); sb.addEventListener('click', () => setMuted(!muted)); }
+    const ib = $('installBtn'), ix = $('installX');
+    if (ib) ib.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('install').classList.add('hide'); });
+    if (ix) ix.addEventListener('click', () => { $('install').classList.add('hide'); localStorage.setItem('pc_noinstall', '1'); });
+    buildMap();
+    if (forcedLevel) playLevel(forcedLevel); else openMap();   // home = level-select map
+    if (isIOS() && !isStandalone()) setTimeout(() => showInstall('ios'), 1200); // iOS has no prompt event — show the how-to
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 })();

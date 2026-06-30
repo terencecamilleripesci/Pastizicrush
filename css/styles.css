@@ -5,15 +5,17 @@
   --shadow:0 16px 40px -16px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+/* lock the page so it behaves like a native app — no scroll, no rubber-band bounce */
+html,body{ height:100%; height:100dvh; overflow:hidden; position:fixed; inset:0; width:100%;
+  overscroll-behavior:none; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
 body{
   font-family:'Trebuchet MS',-apple-system,system-ui,sans-serif;
   background:
     radial-gradient(circle at 20% 0%, #4a1a1a, transparent 60%),
     radial-gradient(circle at 100% 100%, #5a2020, transparent 55%),
     var(--bg);
-  color:#fff; min-height:100%; display:flex; flex-direction:column; align-items:center;
-  padding:10px 10px 24px; overscroll-behavior:none; user-select:none;
+  color:#fff; display:flex; flex-direction:column; align-items:center;
+  padding:max(10px,env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom)); user-select:none;
 }
 
 /* HUD */
@@ -49,10 +51,11 @@ main{ width:min(100%,460px); }
 .jelly.jam.j2{ background:linear-gradient(135deg, rgba(235,160,40,.85), rgba(170,100,20,.75)); box-shadow:inset 0 0 0 3px rgba(255,220,140,.8); }
 .tile.ing{ z-index:3; box-shadow:inset 0 -5px 9px rgba(0,0,0,.25), inset 0 4px 8px rgba(255,255,255,.3), 0 4px 9px rgba(0,0,0,.4); animation:bob 2.4s ease-in-out infinite; }
 @keyframes bob{ 0%,100%{ filter:drop-shadow(0 0 0 rgba(31,122,181,0)) } 50%{ filter:drop-shadow(0 0 8px rgba(120,200,255,.7)) } }
+/* no bubble — the 3D pastry art itself is the piece */
 .tile{ position:absolute; display:flex; align-items:center; justify-content:center; z-index:2;
-  border-radius:50%; line-height:1; cursor:pointer; transition:transform .17s cubic-bezier(.34,1.56,.64,1), opacity .16s ease;
-  will-change:transform; box-shadow:inset 0 -5px 9px rgba(0,0,0,.22), inset 0 4px 8px rgba(255,255,255,.35), 0 4px 7px rgba(0,0,0,.3); }
-.tile .ic{ pointer-events:none; width:88%; height:88%; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); }
+  background:transparent !important; line-height:1; cursor:pointer; transition:transform .17s cubic-bezier(.34,1.56,.64,1), opacity .16s ease;
+  will-change:transform; }
+.tile .ic{ pointer-events:none; width:100%; height:100%; filter:drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
 
 /* sound toggle */
 .sndbtn{ position:fixed; top:10px; right:10px; z-index:55; width:42px; height:42px; border-radius:50%;
@@ -60,7 +63,8 @@ main{ width:min(100%,460px); }
   cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; }
 .sndbtn:hover{ transform:scale(1.08); background:rgba(255,255,255,.18); }
 .sndbtn.off{ opacity:.6; }
-.tile.sel{ box-shadow:0 0 0 3px #fff, 0 0 20px rgba(255,255,255,.85), inset 0 -5px 9px rgba(0,0,0,.22); z-index:6; }
+.tile.sel{ z-index:6; }
+.tile.sel .ic{ filter:drop-shadow(0 0 7px #fff) drop-shadow(0 0 14px rgba(255,255,255,.8)) drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
 .tile.pop{ animation:pop .2s ease-in forwards; z-index:4; }
 @keyframes pop{ 0%{transform:var(--t) scale(1) rotate(0)} 55%{transform:var(--t) scale(1.32) rotateZ(10deg)} 100%{transform:var(--t) scale(0) rotateZ(28deg); opacity:0} }
 
@@ -112,6 +116,48 @@ main{ width:min(100%,460px); }
 .panel p{ color:var(--muted); font-size:.95rem; margin-bottom:18px; }
 .btn{ background:var(--red); color:#fff; border:0; border-radius:999px; padding:14px 34px; font:inherit; font-weight:800; font-size:1.05rem; letter-spacing:.5px; cursor:pointer; box-shadow:0 8px 20px -8px rgba(181,35,42,.7); transition:transform .15s; }
 .btn:hover{ transform:translateY(-2px); }
+.btn-ghost{ background:transparent; color:var(--muted); box-shadow:none; padding:8px 20px; font-size:.92rem; margin-top:6px; }
+.ov-stars{ font-size:2rem; letter-spacing:4px; color:var(--gold); text-shadow:0 2px 0 #00000030; margin:2px 0 -2px; }
+.ov-stars.hide{ display:none; }
+
+/* level-select map */
+.map{ position:fixed; inset:0; z-index:45; display:flex; flex-direction:column; align-items:center;
+  background:radial-gradient(circle at 50% 0%, #4a1a1a, transparent 60%), var(--bg);
+  overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  padding:max(8px,env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)); }
+.map.hide{ display:none; }
+.map-logo{ width:min(78%,300px); height:auto; margin:6px auto 0; filter:drop-shadow(0 8px 16px rgba(0,0,0,.5)); }
+.map-sub{ color:var(--gold); font-weight:800; letter-spacing:1px; text-transform:uppercase; font-size:.82rem; margin:-4px 0 14px; }
+.map-list{ width:min(100%,460px); display:flex; flex-direction:column; gap:16px; }
+.world{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:12px; }
+.world-name{ color:#f3d9b0; font-weight:800; font-size:.9rem; margin-bottom:10px; text-align:center; }
+.world-row{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.lvl-node{ aspect-ratio:1; border-radius:14px; border:2px solid var(--gold); background:linear-gradient(160deg,#b5232a,#7a1717);
+  color:#fff; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font:inherit;
+  box-shadow:0 5px 0 #5a1010, 0 7px 12px -4px rgba(0,0,0,.6); transition:transform .12s; }
+.lvl-node:active{ transform:translateY(3px); box-shadow:0 2px 0 #5a1010; }
+.lvl-node .num{ font-size:1.3rem; font-weight:900; }
+.lvl-node .stars{ font-size:.6rem; letter-spacing:1px; color:var(--gold); }
+.lvl-node.locked{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.15); box-shadow:none; cursor:default; opacity:.6; }
+.lvl-node.locked .lock{ font-size:1.2rem; }
+.lvl-node.cleared{ border-color:#ffd97a; }
+
+/* install banner */
+.install{ position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom)); transform:translateX(-50%);
+  display:flex; align-items:center; gap:10px; width:calc(100% - 24px); max-width:380px;
+  background:var(--panel); color:var(--ink); border:2px solid var(--gold); border-radius:16px;
+  padding:12px 14px; box-shadow:var(--shadow); z-index:70; font-size:.88rem; font-weight:600; animation:slideUp .4s ease; }
+.install.hide{ display:none; }
+@keyframes slideUp{ from{ transform:translate(-50%,30px); opacity:0 } to{ transform:translate(-50%,0); opacity:1 } }
+.install-emoji{ font-size:1.7rem; flex-shrink:0; }
+.install-msg{ line-height:1.3; flex:1; }
+.install-msg b{ color:var(--red); }
+.install-msg .shareico{ display:inline-block; vertical-align:-3px; }
+.install-btn{ background:var(--red); color:#fff; border:0; border-radius:999px; padding:9px 18px; font:inherit; font-weight:800; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.install-x{ position:absolute; top:6px; right:8px; background:transparent; border:0; color:var(--muted); font-size:.95rem; cursor:pointer; padding:2px 4px; }
+/* iOS variant: bottom card with a down-arrow pointing at Safari's share button */
+.install.ios{ flex-direction:column; align-items:flex-start; text-align:left; }
+.install.ios::after{ content:''; position:absolute; bottom:-11px; left:50%; transform:translateX(-50%); border:11px solid transparent; border-top-color:var(--gold); }
 
 /* toast */
 .toast{ position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); background:#111; border:1px solid var(--gold); color:#fff; padding:11px 20px; border-radius:10px; opacity:0; pointer-events:none; transition:.25s; z-index:60; font-weight:700; }

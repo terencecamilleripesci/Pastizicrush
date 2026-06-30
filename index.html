@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Pastizzi Crush</title>
 <meta name="description" content="A Maltese match-3 game — swap pastizzi, ftira, ġbejna & more. Match 3 to pop!">
 <meta name="theme-color" content="#7a1f1f">
@@ -10,6 +10,8 @@
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pastizzi Crush">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -49,18 +51,35 @@
 
 <p class="hint">Tap a tile then a neighbour — or swipe — to swap. Match 3+ in a row or column.</p>
 
-<!-- Overlay (win / lose / start) -->
-<div class="overlay" id="overlay">
+<!-- Level-select map (home screen) -->
+<div class="map" id="map">
+  <img class="map-logo" src="assets/logo.png" alt="Pastizzi Crush">
+  <p class="map-sub">Choose a level</p>
+  <div class="map-list" id="mapList"></div>
+</div>
+
+<!-- Overlay (win / lose / tip) -->
+<div class="overlay hide" id="overlay">
   <div class="panel">
     <div class="emoji" id="ovEmoji">🥟</div>
+    <div class="ov-stars hide" id="ovStars"></div>
     <h2 id="ovTitle">Pastizzi Crush</h2>
-    <p id="ovText">🥟 Tap a treat, then a neighbour — or swipe — to swap.<br>🍕 Line up <b>3 or more</b> of the same to pop them.<br>🎯 Reach the target before your moves run out!</p>
+    <p id="ovText"></p>
     <button class="btn" id="ovBtn">Play</button>
+    <button class="btn btn-ghost" id="ovMap">🗺️ Map</button>
   </div>
 </div>
 
 <div class="flash" id="flash"></div>
 <div class="toast" id="toast"></div>
+
+<!-- Install banner (iOS = step guide, Android = real prompt) -->
+<div class="install hide" id="install">
+  <button class="install-x" id="installX" aria-label="Dismiss">✕</button>
+  <span class="install-emoji">📲</span>
+  <span id="installMsg" class="install-msg"></span>
+  <button class="install-btn" id="installBtn">Install</button>
+</div>
 
 <script src="js/lib/confetti.min.js"></script>
 <script src="js/game.js"></script>
