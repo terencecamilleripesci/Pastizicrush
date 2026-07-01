@@ -72,6 +72,11 @@
     narrow: (r, c) => c >= 1 && c <= 6,
     vee: (r, c) => r >= Math.round(Math.abs(c - 3.5) - 0.5),
     cross: (r, c) => (c >= 2 && c <= 5) || (r >= 2 && r <= 5),
+    circle: (r, c) => (r - 3.5) ** 2 + (c - 3.5) ** 2 <= 12.6,
+    pyramid: (r, c) => r <= 7 - Math.round(Math.abs(c - 3.5) - 0.5),
+    tee: (r, c) => r < 3 || (c >= 3 && c <= 4),
+    band: (r, c) => r >= 1 && r <= 6,
+    hex: (r, c) => Math.abs(c - 3.5) <= 3.5 - Math.max(0, Math.abs(r - 3.5) - 1.5),
   };
   // Objective types: score | clear (jelly/ice/jam coats) | collect (X of a piece) | drop (deliver luzzi)
   const LEVELS = [
@@ -88,7 +93,7 @@
     { shape: 'octagon', type: 'clear', coat: 'jam', spec: 'all1', moves: 16, tip: 'Honey-jam 🍯 — clear it by matching right NEXT to it!' },
     { shape: 'diamond', type: 'clear', coat: 'jelly', spec: 'all2', moves: 20, tip: 'Double jelly in the middle needs two hits.' },
   ];
-  const SHAPE_CYCLE = ['full', 'octagon', 'diamond', 'narrow', 'cross', 'vee'];
+  const SHAPE_CYCLE = ['full', 'octagon', 'diamond', 'circle', 'narrow', 'cross', 'vee', 'pyramid', 'hex', 'tee', 'band'];
   const levelCfg = lv => {
     if (lv <= LEVELS.length) return LEVELS[lv - 1];
     const shape = SHAPE_CYCLE[(lv - 1) % SHAPE_CYCLE.length];
@@ -496,7 +501,7 @@
   function deselect() { if (selected) selected.el.classList.remove('sel'); selected = null; }
   const adj = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c) === 1;
   function onTap(t) { if (busy || !t) return; if (!selected) return select(t); if (selected === t) return deselect(); if (adj(selected, t)) { const s = selected; trySwap(s, t); } else { deselect(); select(t); } }
-  board.addEventListener('pointerdown', e => { initAudio(); const el = e.target.closest('.tile'); if (!el) return; down = { t: el.__t, x: e.clientX, y: e.clientY }; });
+  board.addEventListener('pointerdown', e => { initAudio(); scheduleHint(); const el = e.target.closest('.tile'); if (!el) return; down = { t: el.__t, x: e.clientX, y: e.clientY }; });
   document.addEventListener('pointerup', e => {
     if (!down) return;
     if (aiming) { applyBooster(down.t); down = null; return; }
@@ -538,7 +543,7 @@
     newBoard(); buildCoats(mode === 'clear' ? cfg.coat : null, mode === 'clear' ? cfg.spec : null);
     if (mode === 'drop') placeIngredients(totalDrop);
     layout(); updateHUD(); updateCoinsUI(); $('overlay').classList.add('hide');
-    busy = true; await resolve(); await ensurePlayable(); busy = false; updateHUD();
+    busy = true; await resolve(); await ensurePlayable(); busy = false; updateHUD(); scheduleHint(6000);
     if (cfg.tip) setTimeout(() => toast(cfg.tip), 500);
   }
   function checkEnd() {
@@ -565,6 +570,7 @@
           : mode === 'drop' ? `<b>${dropLeft}</b> luzzi still at sea!` : `You reached <b>${score.toLocaleString()}</b> of ${target.toLocaleString()}.`;
       showOverlay('😅', 'Out of moves', `${miss}<br>💔 lost a life`, 'Try again', 'retry');
     }
+    else scheduleHint();   // still playing → nudge a move after a few idle seconds
   }
   /* ---------- level-select map + progress ---------- */
   const MAXLEVELS = 40, WORLD_SIZE = 5;
@@ -804,18 +810,28 @@
     busy = false; updateHUD(); checkEnd();
   }
   // is there any legal move left? (a special counts, or a swap that makes a line)
-  function hasMove() {
-    if (allTiles().some(t => t.special)) return true;
+  function hasMove() { return !!findHint(); }
+  // return a valid move as [tileA,tileB] (or [special]) to highlight, else null
+  function findHint() {
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
       const t = grid[r][c]; if (!t || t.type === ING) continue;
       for (const [dr, dc] of [[0, 1], [1, 0]]) {
         const u = tileAt(r + dr, c + dc); if (!u || u.type === ING) continue;
         [t.type, u.type] = [u.type, t.type]; const ok = findMatches().length > 0; [t.type, u.type] = [u.type, t.type];
-        if (ok) return true;
+        if (ok) return [t, u];
       }
     }
-    return false;
+    const sp = allTiles().find(x => x.special); return sp ? [sp] : null; // a special is always usable
   }
+  /* ---------- auto-hint (nudges a move after idle) ---------- */
+  let hintTimer = null, hintTiles = null;
+  function clearHint() { if (hintTiles) { hintTiles.forEach(t => t.el && t.el.classList.remove('hint')); hintTiles = null; } }
+  function showHint() {
+    if (busy || aiming || !$('overlay').classList.contains('hide') || !$('map').classList.contains('hide')) return;
+    const h = findHint(); if (!h) return; hintTiles = h; h.forEach(t => t.el.classList.add('hint'));
+  }
+  function scheduleHint(delay = 5000) { clearTimeout(hintTimer); clearHint(); if (NOLOOP) return; hintTimer = setTimeout(showHint, delay); }
+  function stopHint() { clearTimeout(hintTimer); clearHint(); }
   function scrambleTypes() {                       // reshuffle the movable pieces (no coins)
     const movable = allTiles().filter(t => !t.special && t.type !== ING);
     const types = movable.map(t => t.type);
