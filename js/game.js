@@ -263,7 +263,7 @@
     const sz = cell - PAD * 2;
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
       if (isBlocked(r, c)) continue;
-      const el = document.createElement('div'); el.className = 'slot';
+      const el = document.createElement('div'); el.className = 'slot ' + ((r + c) % 2 ? 'sa' : 'sb');
       const { x, y } = xy(r, c); el.style.width = sz + 'px'; el.style.height = sz + 'px'; el.style.transform = `translate(${x}px,${y}px)`;
       board.appendChild(el);
     }
