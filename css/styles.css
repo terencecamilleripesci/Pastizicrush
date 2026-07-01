@@ -39,14 +39,14 @@ body::before{ content:''; position:fixed; inset:-15%; z-index:-1; pointer-events
 .goalbar span{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--gold),#ffd97a); transition:width .35s ease; }
 .goal small{ display:block; text-align:center; margin-top:5px; font-size:.74rem; color:#e9cdba; }
 
-/* Board */
-main{ width:min(100%,460px); }
+/* Board — grows to fill the space between HUD and boosters, board centred in it */
+main{ width:min(100%,460px); flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
 /* in-game background = the world you're playing */
 #gamebg{ position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; display:none; }
 #gamebg::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,8,8,.5), rgba(20,8,8,.35) 40%, rgba(20,8,8,.62)); }
 body.playing #gamebg{ display:block; }
 /* board fits the level shape: no square box — each playable cell gets its own slot */
-.board{ position:relative; width:min(100%, calc(100svh - 300px)); aspect-ratio:1; margin:8px auto 0;
+.board{ position:relative; width:min(100%, calc(100svh - 288px)); aspect-ratio:1; margin:0 auto;
   background:transparent; border:none; box-shadow:none;
   touch-action:none; overflow:hidden; perspective:820px; }
 .slot{ position:absolute; top:0; left:0; border-radius:14px; z-index:0; pointer-events:none;
