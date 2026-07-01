@@ -45,12 +45,14 @@ main{ width:min(100%,460px); }
 #gamebg{ position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; display:none; }
 #gamebg::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,8,8,.5), rgba(20,8,8,.35) 40%, rgba(20,8,8,.62)); }
 body.playing #gamebg{ display:block; }
-/* board sits on the scene with a varying ornate frame (not a flat box) */
+/* board fits the level shape: no square box — each playable cell gets its own slot */
 .board{ position:relative; width:min(100%, calc(100svh - 300px)); aspect-ratio:1; margin:8px auto 0;
-  background:linear-gradient(160deg, rgba(30,12,10,.62), rgba(8,4,4,.72));
-  border:3px solid var(--frame,#e8b54a); border-radius:24px;
-  box-shadow:0 0 0 4px rgba(0,0,0,.35), 0 14px 34px rgba(0,0,0,.6), inset 0 0 40px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.14);
+  background:transparent; border:none; box-shadow:none;
   touch-action:none; overflow:hidden; perspective:820px; }
+.slot{ position:absolute; top:0; left:0; border-radius:15px; z-index:0; pointer-events:none;
+  background:rgba(8,4,4,.42);
+  box-shadow:inset 0 0 0 2px var(--frameSoft, rgba(232,181,74,.4)),
+             inset 0 3px 7px rgba(0,0,0,.4), 0 2px 4px rgba(0,0,0,.3); }
 .jelly{ position:absolute; border-radius:13px; pointer-events:none; z-index:1;
   background:linear-gradient(135deg, rgba(120,205,255,.42), rgba(90,160,235,.30));
   box-shadow:inset 0 0 0 2px rgba(190,235,255,.55), inset 0 4px 10px rgba(255,255,255,.3); }

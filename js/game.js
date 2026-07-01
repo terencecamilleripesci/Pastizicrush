@@ -253,8 +253,19 @@
   const xy = (r, c) => ({ x: c * cell + PAD, y: r * cell + PAD });
   const allTiles = () => { const a = []; for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (grid[r][c]) a.push(grid[r][c]); return a; };
 
+  function buildSlots() {                               // one rounded slot per playable cell → board fits the level shape
+    board.querySelectorAll('.slot').forEach(e => e.remove());
+    const sz = cell - PAD * 2;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      if (isBlocked(r, c)) continue;
+      const el = document.createElement('div'); el.className = 'slot';
+      const { x, y } = xy(r, c); el.style.width = sz + 'px'; el.style.height = sz + 'px'; el.style.transform = `translate(${x}px,${y}px)`;
+      board.appendChild(el);
+    }
+  }
   function layout() {
     cell = board.clientWidth / COLS; const sz = cell - PAD * 2;
+    buildSlots();
     document.querySelectorAll('.tile').forEach(el => { el.style.width = sz + 'px'; el.style.height = sz + 'px'; el.style.fontSize = (cell * 0.54) + 'px'; });
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (grid[r] && grid[r][c]) setPos(grid[r][c], true);
     if (jellyEls) for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (jellyEls[r][c]) placeJelly(jellyEls[r][c], r, c);
@@ -517,7 +528,9 @@
     const gw = Math.floor((level - 1) / WORLD_SIZE);
     const igPool = gw === 0 ? ['assets/ig1.jpg', 'assets/ig2.jpg', 'assets/ig3.jpg', 'assets/ig4.jpg', 'assets/ig5.jpg'] : ['assets/world' + (gw + 1) + '.jpg'];
     $('gamebg').style.backgroundImage = `url(${igPool[Math.floor(Math.random() * igPool.length)]})`;
-    board.style.setProperty('--frame', WORLD_FRAME[gw % WORLD_FRAME.length]);
+    const fc = WORLD_FRAME[gw % WORLD_FRAME.length];
+    board.style.setProperty('--frame', fc);
+    board.style.setProperty('--frameSoft', `rgba(${parseInt(fc.slice(1, 3), 16)},${parseInt(fc.slice(3, 5), 16)},${parseInt(fc.slice(5, 7), 16)},.5)`);
     collected = 0; collectGoal = 0; dropLeft = 0; totalDrop = 0;
     if (mode === 'collect') { collectType = cfg.collect.t; collectGoal = cfg.collect.n; }
     if (mode === 'drop') { dropLeft = totalDrop = cfg.drop; }
