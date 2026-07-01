@@ -552,41 +552,49 @@
   const getStars = () => { try { return JSON.parse(localStorage.getItem('pc_stars') || '{}'); } catch { return {}; } };
   function saveStars(lv, st) { const s = getStars(); if ((s[lv] || 0) < st) { s[lv] = st; localStorage.setItem('pc_stars', JSON.stringify(s)); } }
   function unlockNext(lv) { if (lv + 1 > getUnlocked()) localStorage.setItem('pc_unlocked', Math.min(MAXLEVELS, lv + 1)); }
-  // Candy-Crush style winding path: serpentine nodes, a dashed road, and your avatar walking to the current level.
-  const MAP_GAP = 92, MAP_AMP = 30;               // vertical spacing (px), horizontal swing (%)
-  const nodeX = i => 50 + MAP_AMP * Math.sin((i - 1) * 0.62);
-  const nodeY = i => 46 + (i - 1) * MAP_GAP;
-  let avatarLevel = null;
+  // Per-world themed scenes (each world its own backdrop) with a winding path + your avatar on the current level.
+  // Distinct backdrop per world; drop in assets/worldN.jpg to replace a gradient with real illustration art.
+  const WORLD_BG = [
+    'linear-gradient(180deg,#c99a55,#8a5a2a)',   // 1 Village Bakery — warm bread
+    'linear-gradient(180deg,#9fc4e0,#d8c48c)',   // 2 Valletta Streets — limestone + sky
+    'linear-gradient(180deg,#2b2456,#5a3a7c)',   // 3 Mdina Night
+    'linear-gradient(180deg,#2f95a0,#7fc7b4)',   // 4 Marsaxlokk Market — sea
+    'linear-gradient(180deg,#7aa93f,#c2d382)',   // 5 Gozo Farm
+    'linear-gradient(180deg,#3ab6cf,#a9e4e2)',   // 6 Blue Lagoon
+    'linear-gradient(180deg,#c02a30,#e8a54a)',   // 7 Festa Week
+    'linear-gradient(180deg,#4d6f90,#9fb4c4)',   // 8 Three Cities
+    'linear-gradient(180deg,#96683f,#c8a672)',   // 9 Dingli Cliffs
+    'linear-gradient(180deg,#b0762c,#e8c46a)',   // 10 Pastizzi Factory
+  ];
+  const worldBgURL = w => `assets/world${w + 1}.jpg`;   // optional real art per world
+  const NODE_GAP = 92;
   function buildMap() {
     const list = $('mapList'); if (!list) return;
-    const unlocked = getUnlocked(), stars = getStars();
-    const H = nodeY(MAXLEVELS) + 70; list.className = 'path'; list.style.height = H + 'px'; list.innerHTML = '';
-    // dashed road connecting all nodes
-    let d = '';
-    for (let i = 1; i <= MAXLEVELS; i++) d += (i === 1 ? 'M' : 'L') + nodeX(i).toFixed(1) + ' ' + nodeY(i).toFixed(1) + ' ';
-    list.insertAdjacentHTML('beforeend',
-      `<svg class="road" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#e8b54a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 11" vector-effect="non-scaling-stroke" opacity=".65"/></svg>`);
-    // world banners + level nodes
-    for (let i = 1; i <= MAXLEVELS; i++) {
-      const x = nodeX(i), y = nodeY(i), locked = i > unlocked, st = stars[i] || 0;
-      if ((i - 1) % WORLD_SIZE === 0) {
-        const w = (i - 1) / WORLD_SIZE, side = x < 50 ? 'right' : 'left';
-        list.insertAdjacentHTML('beforeend', `<div class="world-banner ${side}" style="top:${y - 54}px">${w + 1}. ${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}</div>`);
+    const unlocked = getUnlocked(), stars = getStars(), cur = Math.min(unlocked, MAXLEVELS);
+    list.className = 'scenes'; list.style.height = ''; list.innerHTML = '';
+    const worlds = Math.ceil(MAXLEVELS / WORLD_SIZE);
+    for (let w = 0; w < worlds; w++) {
+      const sec = document.createElement('section'); sec.className = 'scene';
+      sec.style.background = WORLD_BG[w % WORLD_BG.length];
+      // if a real illustration exists it layers on top of the gradient (onerror keeps gradient)
+      const img = new Image(); img.onload = () => { sec.style.backgroundImage = `url(${img.src})`; sec.style.backgroundSize = 'cover'; sec.style.backgroundPosition = 'center'; }; img.src = worldBgURL(w);
+      const n = Math.min(WORLD_SIZE, MAXLEVELS - w * WORLD_SIZE), sceneH = 92 + n * NODE_GAP; sec.style.height = sceneH + 'px';
+      sec.insertAdjacentHTML('beforeend', `<div class="scene-tint"></div><div class="world-ribbon">${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}<span>World ${w + 1}</span></div>`);
+      const pos = []; let d = '';
+      for (let j = 0; j < n; j++) { const lv = w * WORLD_SIZE + j + 1, x = 50 + 30 * Math.sin(lv * 0.7), y = 80 + j * NODE_GAP; pos.push({ lv, x, y }); d += (j === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' '; }
+      sec.insertAdjacentHTML('beforeend', `<svg class="road" viewBox="0 0 100 ${sceneH}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 13" vector-effect="non-scaling-stroke" opacity=".55"/></svg>`);
+      for (const { lv, x, y } of pos) {
+        const locked = lv > unlocked, st = stars[lv] || 0;
+        const node = document.createElement('div'); node.className = 'node'; node.style.left = x + '%'; node.style.top = y + 'px';
+        const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '') + (lv === cur ? ' current' : '');
+        btn.innerHTML = locked ? `<span class="lock">🔒</span>` : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
+        if (!locked) btn.addEventListener('click', () => playLevel(lv));
+        node.appendChild(btn); sec.appendChild(node);
+        if (lv === cur) { const av = document.createElement('div'); av.className = 'avatar'; av.id = 'avatarMarker'; av.textContent = getAvatar(); av.style.left = x + '%'; av.style.top = y + 'px'; sec.appendChild(av); }
       }
-      const node = document.createElement('div'); node.className = 'node'; node.style.left = x + '%'; node.style.top = y + 'px';
-      const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '');
-      btn.innerHTML = locked ? `<span class="lock">🔒</span>` : `<span class="num">${i}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
-      if (!locked) btn.addEventListener('click', () => playLevel(i));
-      node.appendChild(btn); list.appendChild(node);
+      list.appendChild(sec);
     }
-    // avatar walks to the current (highest unlocked) level
-    const cur = Math.min(unlocked, MAXLEVELS), from = avatarLevel == null ? cur : avatarLevel;
-    const av = document.createElement('div'); av.className = 'avatar'; av.id = 'avatarMarker'; av.textContent = getAvatar();
-    av.style.left = nodeX(from) + '%'; av.style.top = nodeY(from) + 'px'; list.appendChild(av);
-    void av.offsetWidth;                                   // reflow so the move animates
-    requestAnimationFrame(() => { av.style.left = nodeX(cur) + '%'; av.style.top = nodeY(cur) + 'px'; });
-    avatarLevel = cur;
-    setTimeout(() => { const a = $('avatarMarker'); if (a) a.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60); // keep current level in view
+    setTimeout(() => { const a = $('avatarMarker'); if (a) a.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60);
   }
   function playLevel(lv) {
     if (lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); renderMeta(); return; }
