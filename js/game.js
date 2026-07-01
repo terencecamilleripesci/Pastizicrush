@@ -122,8 +122,10 @@
     const files = { title: 'assets/voice-title.mp3', mela: 'assets/voice-mela.mp3', prosit: 'assets/voice-prosit.mp3' };
     for (const k in files) fetch(files[k]).then(r => r.arrayBuffer()).then(a => AC.decodeAudioData(a)).then(buf => { VOICE[k] = buf; }).catch(() => { });
   }
-  function playVoice(name, vol = 0.95, minGap = 0) {
-    if (muted || !AC || !VOICE[name] || !voiceGain) return;
+  function playVoice(name, vol = 0.95, minGap = 0, retries = 10) {
+    if (muted || !AC) return;
+    if (AC.state === 'suspended') AC.resume();
+    if (!VOICE[name] || !voiceGain) { if (retries > 0) setTimeout(() => playVoice(name, vol, 0, retries - 1), 130); return; } // wait for decode
     const now = (performance || Date).now(); if (minGap && now - lastVoiceT < minGap) return; lastVoiceT = now;
     const s = AC.createBufferSource(); s.buffer = VOICE[name];
     const g = AC.createGain(); g.gain.value = vol; s.connect(g).connect(voiceGain); s.start();
@@ -667,6 +669,10 @@
     el.classList.remove('hide');
   }
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; showInstall('android'); });
+
+  // Unlock + warm up audio on the very first interaction anywhere (mobile autoplay policies)
+  window.addEventListener('pointerdown', initAudio);
+  window.addEventListener('touchstart', initAudio, { passive: true });
 
   document.addEventListener('DOMContentLoaded', () => {
     $('best').textContent = best.toLocaleString();
