@@ -181,8 +181,12 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
 .btn{ background:var(--red); color:#fff; border:0; border-radius:999px; padding:14px 34px; font:inherit; font-weight:800; font-size:1.05rem; letter-spacing:.5px; cursor:pointer; box-shadow:0 8px 20px -8px rgba(181,35,42,.7); transition:transform .15s; }
 .btn:hover{ transform:translateY(-2px); }
 .btn-ghost{ background:transparent; color:var(--muted); box-shadow:none; padding:8px 20px; font-size:.92rem; margin-top:6px; }
-.ov-stars{ font-size:2rem; letter-spacing:4px; color:var(--gold); text-shadow:0 2px 0 #00000030; margin:2px 0 -2px; }
+.ov-stars{ margin:2px 0 -2px; height:2.8rem; }
 .ov-stars.hide{ display:none; }
+.ov-stars b{ display:inline-block; font-size:2.3rem; margin:0 2px; color:rgba(120,90,40,.3); animation:starpop .5s cubic-bezier(.2,1.6,.4,1) both; }
+.ov-stars b.on{ color:var(--gold); text-shadow:0 2px 0 #00000030, 0 0 16px rgba(255,210,90,.85); }
+.ov-stars b:nth-child(2){ font-size:2.9rem; margin-top:-8px; }
+@keyframes starpop{ 0%{ transform:scale(0) rotate(-45deg); opacity:0 } 100%{ transform:scale(1) rotate(0); opacity:1 } }
 
 /* lives + coins meta bar (map) */
 .meta-bar{ display:flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 10px; flex-wrap:wrap; }

@@ -535,7 +535,8 @@
       const reward = 20 + st * 15; addCoins(reward);
       sfx.win(); confettiRain(); setTimeout(() => playVoice('mela', 1), 220); if (navigator.vibrate) try { navigator.vibrate([40, 30, 90]); } catch { }
       showOverlay('🎉', `Level ${level} cleared!`, `${goalMsg}<br>🪙 <b>+${reward}</b> coins`, 'Next level', 'next');
-      $('ovStars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st); $('ovStars').classList.remove('hide');
+      $('ovStars').innerHTML = [0, 1, 2].map(i => `<b class="${i < st ? 'on' : 'off'}" style="animation-delay:${(i * 0.2).toFixed(2)}s">★</b>`).join('');
+      $('ovStars').classList.remove('hide');
     }
     else if (moves <= 0) {
       loseLife(); renderMeta();
@@ -613,8 +614,8 @@
       const lv = w * WORLD_SIZE + j + 1, a = anchors[j], locked = lv > unlocked, st = stars[lv] || 0;
       const node = document.createElement('div'); node.className = 'node'; node.style.left = a[0] + '%'; node.style.top = a[1] + '%';
       const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '') + (lv === cur ? ' current' : '');
-      const stars = `<span class="stars"><b class="${st > 0 ? 'on' : 'off'}">★</b><b class="${st > 1 ? 'on' : 'off'}">★</b><b class="${st > 2 ? 'on' : 'off'}">★</b></span>`;
-      btn.innerHTML = locked ? '' : `${stars}<span class="num">${lv}</span>`;
+      const starHtml = `<span class="stars"><b class="${st > 0 ? 'on' : 'off'}">★</b><b class="${st > 1 ? 'on' : 'off'}">★</b><b class="${st > 2 ? 'on' : 'off'}">★</b></span>`;
+      btn.innerHTML = locked ? '' : `${starHtml}<span class="num">${lv}</span>`;
       if (!locked) btn.addEventListener('click', () => playLevel(lv));
       node.appendChild(btn); wrap.appendChild(node);
       if (lv === cur) { const av = document.createElement('div'); av.className = 'avatar'; av.textContent = getAvatar(); av.style.left = a[0] + '%'; av.style.top = a[1] + '%'; wrap.appendChild(av); }
