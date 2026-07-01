@@ -283,7 +283,22 @@ body.on-menu .tophud, body.on-map .tophud{ display:flex; }
 body.on-map .hud-back{ display:block; }
 .homebtn{ display:none !important; } body.playing .homebtn{ display:block !important; }
 .map-bottom{ display:none !important; } body.on-map .map-bottom{ display:flex !important; }
-.map{ padding-top:calc(58px + env(safe-area-inset-top)) !important; }
+/* map is now full-screen, one world at a time (no scroll) */
+.map{ padding:0 !important; overflow:hidden !important; display:block !important; }
+.oneworld{ position:absolute; inset:0; }
+.oneworld .scene{ position:absolute; inset:0; height:auto; background-size:cover; background-position:center; }
+.oneworld .scene-tint{ background:linear-gradient(180deg, rgba(0,0,0,.05), transparent 30%, transparent 70%, rgba(0,0,0,.3)); }
+.oneworld .world-ribbon{ top:calc(60px + env(safe-area-inset-top)); }
+/* path art holder, sized to the pathway image's aspect ratio */
+.pathwrap{ position:absolute; left:50%; transform:translateX(-50%);
+  top:calc(104px + env(safe-area-inset-top)); bottom:calc(96px + env(safe-area-inset-bottom)); aspect-ratio:360/639; }
+.pathimg{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 8px 10px rgba(0,0,0,.45)); }
+.oneworld .node{ transform:translate(-50%,-50%); }
+/* prev / next world arrows */
+.wnav{ position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:44px; height:60px; border:0; cursor:pointer;
+  background:rgba(0,0,0,.35); color:#fff; font-size:2rem; line-height:1; border-radius:12px; backdrop-filter:blur(3px); }
+.wnav.prev{ left:6px; } .wnav.next{ right:6px; }
+.wnav:disabled{ opacity:.25; pointer-events:none; }
 .menu{ position:fixed; inset:0; z-index:45; display:flex; flex-direction:column; align-items:center; overflow-y:auto;
   -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
   background:

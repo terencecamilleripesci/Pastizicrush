@@ -580,40 +580,51 @@
     { e: '#e0954a', b: '#cfa76a', d: '#efcf96' }, // 9 Dingli Cliffs — sunset
     { e: '#5a8fb0', b: '#e6cd94', d: '#f4e2b6' }, // 10 Pastizzi Factory — steel
   ];
-  const NODE_GAP = 92;
+  // node anchors (%x,%y) along each 3D pathway image, computed from its centre-line — level 1 at bottom
+  const PATH_NODES = [
+    [[46.4, 90], [44.4, 72], [61.1, 52], [43.8, 32], [55.2, 13]],
+    [[50.1, 90], [49.2, 72], [51.0, 52], [53.3, 32], [48.3, 13]],
+    [[53.0, 90], [45.0, 72], [56.1, 52], [47.4, 32], [53.3, 13]],
+    [[50.1, 90], [49.0, 72], [52.6, 52], [48.7, 32], [58.2, 13]],
+    [[52.8, 90], [48.3, 72], [43.5, 52], [52.6, 32], [54.8, 13]],
+    [[53.1, 90], [45.4, 72], [58.5, 52], [44.6, 32], [51.7, 13]],
+    [[45.4, 90], [50.5, 72], [51.3, 52], [49.1, 32], [57.6, 13]],
+    [[43.1, 90], [51.8, 72], [47.6, 52], [62.1, 32], [64.9, 13]],
+    [[48.1, 90], [53.4, 72], [50.4, 52], [45.8, 32], [49.6, 13]],
+  ];
+  let viewWorld = null;                                  // which world screen is showing
+  // Full-screen, one world at a time, using the real 3D pathway art.
   function buildMap() {
     const list = $('mapList'); if (!list) return;
     const unlocked = getUnlocked(), stars = getStars(), cur = Math.min(unlocked, MAXLEVELS);
-    list.className = 'scenes'; list.style.height = ''; list.innerHTML = '';
     const worlds = Math.ceil(MAXLEVELS / WORLD_SIZE);
-    for (let w = 0; w < worlds; w++) {
-      const sec = document.createElement('section'); sec.className = 'scene';
-      sec.style.background = WORLD_BG[w % WORLD_BG.length];
-      // if a real illustration exists it layers on top of the gradient (onerror keeps gradient)
-      const img = new Image(); img.onload = () => { sec.style.backgroundImage = `url(${img.src})`; sec.style.backgroundSize = 'cover'; sec.style.backgroundPosition = 'center'; }; img.src = worldBgURL(w);
-      const n = Math.min(WORLD_SIZE, MAXLEVELS - w * WORLD_SIZE), sceneH = 92 + n * NODE_GAP; sec.style.height = sceneH + 'px';
-      sec.insertAdjacentHTML('beforeend', `<div class="scene-tint"></div><div class="world-ribbon">${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}<span>World ${w + 1}</span></div>`);
-      const pos = []; let d = '';
-      for (let j = 0; j < n; j++) { const lv = w * WORLD_SIZE + j + 1, x = 50 + 30 * Math.sin(lv * 0.7), y = 80 + j * NODE_GAP; pos.push({ lv, x, y }); d += (j === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' '; }
-      const rd = WORLD_ROAD[w % WORLD_ROAD.length];
-      sec.insertAdjacentHTML('beforeend', `<svg class="road" viewBox="0 0 100 ${sceneH}" preserveAspectRatio="none">` +
-        `<path d="${d}" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +   // soft shadow
-        `<path d="${d}" fill="none" stroke="${rd.e}" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +            // edge
-        `<path d="${d}" fill="none" stroke="${rd.b}" stroke-width="23" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +            // sandy path
-        `<path d="${d}" fill="none" stroke="${rd.d}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 12" vector-effect="non-scaling-stroke" opacity=".7"/>` + // cobble dashes
-        `</svg>`);
-      for (const { lv, x, y } of pos) {
-        const locked = lv > unlocked, st = stars[lv] || 0;
-        const node = document.createElement('div'); node.className = 'node'; node.style.left = x + '%'; node.style.top = y + 'px';
-        const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '') + (lv === cur ? ' current' : '');
-        btn.innerHTML = locked ? '' : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
-        if (!locked) btn.addEventListener('click', () => playLevel(lv));
-        node.appendChild(btn); sec.appendChild(node);
-        if (lv === cur) { const av = document.createElement('div'); av.className = 'avatar'; av.id = 'avatarMarker'; av.textContent = getAvatar(); av.style.left = x + '%'; av.style.top = y + 'px'; sec.appendChild(av); }
-      }
-      list.appendChild(sec);
+    if (viewWorld == null) viewWorld = Math.floor((cur - 1) / WORLD_SIZE);
+    viewWorld = Math.max(0, Math.min(worlds - 1, viewWorld));
+    const w = viewWorld, pathIdx = w % PATH_NODES.length, anchors = PATH_NODES[pathIdx];
+    list.className = 'oneworld'; list.innerHTML = '';
+    const sec = document.createElement('section'); sec.className = 'scene';
+    sec.style.background = WORLD_BG[w % WORLD_BG.length];
+    const bg = new Image(); bg.onload = () => { sec.style.backgroundImage = `url(${bg.src})`; }; bg.src = worldBgURL(w);
+    sec.insertAdjacentHTML('beforeend', `<div class="scene-tint"></div><div class="world-ribbon">${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}<span>World ${w + 1}</span></div>`);
+    const wrap = document.createElement('div'); wrap.className = 'pathwrap';
+    wrap.innerHTML = `<img class="pathimg" src="assets/path${pathIdx + 1}.png" alt="">`;
+    const n = Math.min(WORLD_SIZE, MAXLEVELS - w * WORLD_SIZE);
+    for (let j = 0; j < n; j++) {
+      const lv = w * WORLD_SIZE + j + 1, a = anchors[j], locked = lv > unlocked, st = stars[lv] || 0;
+      const node = document.createElement('div'); node.className = 'node'; node.style.left = a[0] + '%'; node.style.top = a[1] + '%';
+      const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '') + (lv === cur ? ' current' : '');
+      btn.innerHTML = locked ? '' : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
+      if (!locked) btn.addEventListener('click', () => playLevel(lv));
+      node.appendChild(btn); wrap.appendChild(node);
+      if (lv === cur) { const av = document.createElement('div'); av.className = 'avatar'; av.textContent = getAvatar(); av.style.left = a[0] + '%'; av.style.top = a[1] + '%'; wrap.appendChild(av); }
     }
-    setTimeout(() => { const a = $('avatarMarker'); if (a) a.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60);
+    sec.appendChild(wrap);
+    sec.insertAdjacentHTML('beforeend',
+      `<button class="wnav prev" id="wPrev"${w <= 0 ? ' disabled' : ''}>‹</button><button class="wnav next" id="wNext"${w >= worlds - 1 ? ' disabled' : ''}>›</button>`);
+    list.appendChild(sec);
+    const p = $('wPrev'), nx = $('wNext');
+    if (p) p.addEventListener('click', () => { viewWorld--; buildMap(); });
+    if (nx) nx.addEventListener('click', () => { viewWorld++; buildMap(); });
   }
   function setScreen(s) { document.body.classList.remove('on-menu', 'on-map', 'playing'); document.body.classList.add(s); }
   function playLevel(lv) {
@@ -627,7 +638,7 @@
     $('menu').classList.remove('hide'); startMenuMusic(); startMetaTicker();
   }
   function openMap() {
-    setScreen('on-map'); buildMap();
+    setScreen('on-map'); viewWorld = null; buildMap();
     $('menu').classList.add('hide'); $('overlay').classList.add('hide'); $('settings').classList.add('hide');
     $('map').classList.remove('hide'); startMenuMusic(); startMetaTicker();
   }
