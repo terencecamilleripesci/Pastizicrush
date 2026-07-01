@@ -293,7 +293,8 @@ body.on-map .hud-back{ display:block; }
 .homebtn{ display:none !important; } body.playing .homebtn{ display:block !important; }
 .map-bottom{ display:none !important; } body.on-map .map-bottom{ display:flex !important; }
 /* map is now full-screen, one world at a time (no scroll) */
-.map{ padding:0 !important; overflow:hidden !important; display:block !important; }
+.map{ padding:0 !important; overflow:hidden !important; display:block; }
+.map.hide{ display:none !important; }   /* keep it hidden off the map screen */
 .oneworld{ position:absolute; inset:0; }
 .oneworld .scene{ position:absolute; inset:0; height:auto; background-size:cover; background-position:center; animation:sceneIn .28s ease; }
 @keyframes sceneIn{ from{ opacity:.35 } to{ opacity:1 } }
