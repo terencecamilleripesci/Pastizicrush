@@ -888,7 +888,7 @@
 
   /* ---------- install prompt (iOS instructions / Android native) ---------- */
   let deferredPrompt = null;
-  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches || window.navigator.standalone === true;
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
   const SHARE_SVG = "<svg class='shareico' width='15' height='17' viewBox='0 0 50 60' fill='none' stroke='#1f7ab5' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'><path d='M25 5 V37'/><path d='M14 16 L25 5 L36 16'/><path d='M12 26 H6 V54 H44 V26 H38'/></svg>";
   function showInstall(kind) {
