@@ -822,6 +822,16 @@
     $('mapPlay').addEventListener('click', () => playLevel(Math.min(getUnlocked(), MAXLEVELS)));
     $('menuPlay').addEventListener('click', openMap);
     $('mapBack').addEventListener('click', openMenu);
+    // swipe left/right to change world on the map
+    let mapDown = null;
+    $('map').addEventListener('pointerdown', e => { mapDown = { x: e.clientX, y: e.clientY }; });
+    $('map').addEventListener('pointerup', e => {
+      if (!mapDown) return; const dx = e.clientX - mapDown.x, dy = e.clientY - mapDown.y; mapDown = null;
+      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        const worlds = Math.ceil(MAXLEVELS / WORLD_SIZE), nw = viewWorld + (dx < 0 ? 1 : -1);
+        if (nw >= 0 && nw < worlds) { viewWorld = nw; buildMap(); }
+      }
+    });
     $('btnShop').addEventListener('click', () => toast('🛒 Shop coming soon!'));
     $('btnDaily').addEventListener('click', claimDaily);
     // settings panel
