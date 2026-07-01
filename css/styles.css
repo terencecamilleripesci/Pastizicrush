@@ -93,14 +93,26 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
 .set-name{ padding:11px 14px; border-radius:12px; border:2px solid var(--line); font:inherit; font-weight:700; text-align:center; color:var(--ink); background:#fff; }
 .set-toggle{ padding:12px; border-radius:12px; border:2px solid var(--line); background:#f3e2c8; color:var(--muted); font:inherit; font-weight:800; cursor:pointer; transition:.15s; }
 .set-toggle.on{ background:linear-gradient(180deg,#ffe6ad,#e6b563); border-color:var(--gold); color:#7a1717; }
+.set-sub{ color:var(--muted); font-size:.82rem; margin:-4px 0 2px; }
+/* avatar picker */
+.avatar-pick{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+.av{ aspect-ratio:1; font-size:1.5rem; border-radius:12px; border:2px solid var(--line); background:#fff; cursor:pointer; transition:.12s; }
+.av.on{ border-color:var(--gold); background:linear-gradient(180deg,#ffe6ad,#f0c46a); transform:scale(1.06); }
+/* profile chip on map */
+.profile{ display:inline-flex; align-items:center; gap:8px; margin:4px auto 8px; padding:5px 14px 5px 6px; border-radius:999px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(232,181,74,.4); color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+.profile .pf-av{ font-size:1.25rem; }
+.profile .pf-name{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.profile .pf-best{ color:var(--gold); font-size:.78rem; }
 
 /* leaderboard */
 .leaderboard{ width:min(100%,460px); margin:18px auto 0; background:linear-gradient(180deg, rgba(90,40,20,.55), rgba(60,26,16,.6));
   border:2px solid rgba(232,181,74,.5); border-radius:18px; padding:14px; box-shadow:0 8px 20px -8px rgba(0,0,0,.6); }
 .lb-title{ text-align:center; color:var(--gold); font-weight:800; font-size:1.05rem; margin-bottom:10px; letter-spacing:.5px; }
 .lb-list{ display:flex; flex-direction:column; gap:5px; }
-.lb-row{ display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:8px; padding:7px 10px; border-radius:10px;
+.lb-row{ display:grid; grid-template-columns:26px 26px 1fr auto; align-items:center; gap:8px; padding:7px 10px; border-radius:10px;
   background:rgba(255,255,255,.06); color:#f3e2c8; font-weight:700; }
+.lb-av{ font-size:1.15rem; text-align:center; }
 .lb-row.me{ background:linear-gradient(90deg, rgba(232,181,74,.28), rgba(232,181,74,.12)); border:1px solid rgba(232,181,74,.5); color:#fff; }
 .lb-rank{ font-weight:900; color:var(--gold); text-align:center; }
 .lb-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

@@ -499,7 +499,7 @@
   function checkEnd() {
     if (!$('map').classList.contains('hide')) return;   // left to the map mid-cascade — don't pop an overlay over it
     const won = mode === 'clear' ? jellyLeft <= 0 : mode === 'collect' ? collected >= collectGoal : mode === 'drop' ? dropLeft <= 0 : score >= target;
-    if (won || moves <= 0) { if (score > 0) addScore(getPlayer(), score); }   // record on any level end
+    if (won || moves <= 0) { if (score > 0) addScore(getPlayer(), score, getAvatar()); }   // record on any level end
     const goalMsg = mode === 'clear' ? `All cleared! Score <b>${score.toLocaleString()}</b>.`
       : mode === 'collect' ? `Collected all ${collectGoal} ${pieceMini(collectType)}!`
         : mode === 'drop' ? `All luzzi delivered! ⛵` : `You scored <b>${score.toLocaleString()}</b>.`;
@@ -550,25 +550,44 @@
     stopMetaTicker(); initAudio(); sfx.start(); playVoice('title', 1); startMusic(); level = lv;
     document.body.classList.add('playing'); $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
   }
-  function openMap() { document.body.classList.remove('playing'); buildMap(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); startMetaTicker(); }
+  function openMap() { document.body.classList.remove('playing'); buildMap(); renderProfile(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); startMetaTicker(); }
   function goHome() { deselect(); aiming = null; clearAim(); openMap(); }
 
-  /* ---------- settings + leaderboard ---------- */
-  function openSettings() { syncSettingsUI(); $('setName').value = getPlayer(); $('settings').classList.remove('hide'); }
+  /* ---------- account + settings + leaderboard (local) ---------- */
+  const AVATARS = ['🥟', '🍕', '🍩', '🌸', '⛵', '🧑‍🍳', '👩‍🍳', '🇲🇹', '🌟', '🐐'];
   const getPlayer = () => (localStorage.getItem('pc_player') || 'Player');
-  const SEED_SCORES = [{ name: 'Marija', score: 4200 }, { name: 'Ġużeppi', score: 3600 }, { name: 'Chikku', score: 2900 }, { name: 'Tereża', score: 2100 }];
+  const getAvatar = () => (localStorage.getItem('pc_avatar') || '🥟');
+  const hasAccount = () => !!localStorage.getItem('pc_player');
+  let pickAv = getAvatar();
+  function openAccount() {
+    pickAv = getAvatar(); $('accName').value = hasAccount() ? getPlayer() : '';
+    const wrap = $('avatarPick'); wrap.innerHTML = AVATARS.map(a => `<button class="av${a === pickAv ? ' on' : ''}" data-a="${a}">${a}</button>`).join('');
+    wrap.querySelectorAll('.av').forEach(b => b.addEventListener('click', () => { pickAv = b.dataset.a; wrap.querySelectorAll('.av').forEach(x => x.classList.toggle('on', x === b)); }));
+    $('account').classList.remove('hide');
+  }
+  function saveAccount() {
+    const name = ($('accName').value || 'Player').trim().slice(0, 12) || 'Player';
+    localStorage.setItem('pc_player', name); localStorage.setItem('pc_avatar', pickAv);
+    $('account').classList.add('hide'); renderProfile(); renderLeaderboard();
+  }
+  function renderProfile() {
+    const p = $('profile'); if (!p) return;
+    p.innerHTML = `<span class="pf-av">${getAvatar()}</span><span class="pf-name">${escapeHtml(getPlayer())}</span><span class="pf-best">🏆 ${best.toLocaleString()}</span>`;
+  }
+  function openSettings() { syncSettingsUI(); $('settings').classList.remove('hide'); }
+  const SEED_SCORES = [{ name: 'Marija', score: 4200, av: '👩‍🍳' }, { name: 'Ġużeppi', score: 3600, av: '🧑‍🍳' }, { name: 'Chikku', score: 2900, av: '🐐' }, { name: 'Tereża', score: 2100, av: '🌟' }];
   function getScores() { try { const s = JSON.parse(localStorage.getItem('pc_scores') || 'null'); if (Array.isArray(s)) return s; } catch { } return SEED_SCORES.slice(); }
-  function addScore(name, score) {
-    const best = {}; for (const e of getScores()) best[e.name] = Math.max(best[e.name] || 0, e.score);
-    best[name] = Math.max(best[name] || 0, score);
-    const s = Object.keys(best).map(n => ({ name: n, score: best[n] })).sort((a, b) => b.score - a.score).slice(0, 12);
+  function addScore(name, score, av) {
+    const best = {}; for (const e of getScores()) if (!best[e.name] || e.score > best[e.name].score) best[e.name] = { score: e.score, av: e.av || '🥟' };
+    if (!best[name] || score > best[name].score) best[name] = { score, av: av || '🥟' };
+    const s = Object.keys(best).map(n => ({ name: n, score: best[n].score, av: best[n].av })).sort((a, b) => b.score - a.score).slice(0, 12);
     localStorage.setItem('pc_scores', JSON.stringify(s));
   }
   const escapeHtml = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function renderLeaderboard() {
     const el = $('leaderList'); if (!el) return;
     const me = getPlayer(), s = getScores().slice(0, 8);
-    el.innerHTML = s.map((e, i) => `<div class="lb-row${e.name === me ? ' me' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${(e.score || 0).toLocaleString()}</span></div>`).join('') || '<div class="lb-empty">No scores yet — play to get on the board!</div>';
+    el.innerHTML = s.map((e, i) => `<div class="lb-row${e.name === me ? ' me' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-av">${e.av || '🥟'}</span><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${(e.score || 0).toLocaleString()}</span></div>`).join('') || '<div class="lb-empty">No scores yet — play to get on the board!</div>';
   }
 
   /* ---------- lives + coins meta ---------- */
@@ -708,7 +727,12 @@
     $('setMusic').addEventListener('click', () => setMusic(!musicOn));
     $('setSfx').addEventListener('click', () => setSfx(!sfxOn));
     $('setHome').addEventListener('click', () => { $('settings').classList.add('hide'); goHome(); });
-    $('setName').addEventListener('change', e => { localStorage.setItem('pc_player', (e.target.value || 'Player').slice(0, 12)); });
+    $('setAccount').addEventListener('click', () => { $('settings').classList.add('hide'); openAccount(); });
+    // account panel
+    $('accSave').addEventListener('click', saveAccount);
+    $('profile').addEventListener('click', openAccount);
+    if (!hasAccount() && !forcedLevel) setTimeout(() => { if (!isIOS() || isStandalone()) openAccount(); }, 400); // first-run create account
+    renderProfile();
     syncSettingsUI();
     renderMeta();
     const ib = $('installBtn'), ix = $('installX');

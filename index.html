@@ -77,6 +77,7 @@
 <!-- Level-select map (home screen) -->
 <div class="map" id="map">
   <img class="map-logo" src="assets/logo.png" alt="Pastizzi Crush">
+  <button class="profile" id="profile" aria-label="Edit account"></button>
   <div class="meta-bar" id="metaBar">
     <span class="meta-lives" id="metaLives"></span>
     <span class="meta-timer" id="metaTimer"></span>
@@ -95,11 +96,22 @@
 <div class="settings hide" id="settings">
   <div class="set-panel">
     <h2>⚙️ Settings</h2>
-    <input id="setName" class="set-name" maxlength="12" placeholder="Your name" aria-label="Player name">
     <button class="set-toggle" id="setMusic">🎵 Music: ON</button>
     <button class="set-toggle" id="setSfx">🔊 Effects: ON</button>
+    <button class="btn" id="setAccount">👤 Edit account</button>
     <button class="btn" id="setHome">🗺️ Home / Map</button>
     <button class="btn btn-ghost" id="setClose">Close</button>
+  </div>
+</div>
+
+<!-- Account (create / edit) -->
+<div class="settings hide" id="account">
+  <div class="set-panel">
+    <h2>👤 Your Account</h2>
+    <p class="set-sub">Pick a name & avatar for the leaderboard</p>
+    <input id="accName" class="set-name" maxlength="12" placeholder="Your name" aria-label="Player name">
+    <div class="avatar-pick" id="avatarPick"></div>
+    <button class="btn" id="accSave">Save</button>
   </div>
 </div>
 
