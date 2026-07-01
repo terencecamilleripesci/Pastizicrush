@@ -538,6 +538,24 @@
     else { $('goalfill').style.width = Math.min(100, score / target * 100) + '%'; $('goaltext').textContent = `Target ${target.toLocaleString()}`; }
   }
   function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1600); }
+  // animated objective banner at level start (auto-dismisses — no extra tap)
+  function levelIntro(lv, cfg) {
+    const goal = cfg.type === 'clear' ? (cfg.coat === 'ice' ? '❄️ Smash all the ice!' : cfg.coat === 'jam' ? '🍯 Clear the honey-jam!' : '🍓 Clear all the jelly!')
+      : cfg.type === 'collect' ? `Collect ${cfg.collect.n} treats!`
+        : cfg.type === 'drop' ? `⛵ Deliver ${cfg.drop} luzzi!` : `🎯 Score ${(cfg.target || 0).toLocaleString()}!`;
+    const el = document.createElement('div'); el.className = 'lvlintro';
+    el.innerHTML = `<b>Level ${lv}</b><span>${goal}</span>`;
+    document.body.appendChild(el); setTimeout(() => el.classList.add('out'), 1400); setTimeout(() => el.remove(), 1900);
+  }
+  // preload heavy art in the background so screens never pop in
+  function preloadArt() {
+    const urls = [];
+    for (let i = 1; i <= 10; i++) urls.push(`assets/world${i}.jpg`);
+    for (let i = 1; i <= 10; i++) urls.push(`assets/ig${i}.jpg`);
+    for (let i = 1; i <= 9; i++) urls.push(`assets/path${i}.png`);
+    let k = 0; const next = () => { if (k >= urls.length) return; const im = new Image(); im.onload = im.onerror = next; im.src = urls[k++]; };
+    next(); next(); // two at a time, off the critical path
+  }
   function showOverlay(emoji, title, text, btn, action) { $('ovEmoji').textContent = emoji; $('ovStars').classList.add('hide'); $('ovTitle').textContent = title; $('ovText').innerHTML = text; $('ovBtn').textContent = btn; overlayAction = action; $('overlay').classList.remove('hide'); }
   // frame colour matched to each world's scene (not random — keeps it consistent with the background)
   const WORLD_FRAME = ['#e8b54a', '#e6b24a', '#8f9be0', '#37b0be', '#8cb84a', '#3fc4d4', '#efc24a', '#6fa0c8', '#e0a24a', '#d99a3a'];
@@ -563,7 +581,8 @@
     if (mode === 'drop') placeIngredients(totalDrop);
     layout(); updateHUD(); updateCoinsUI(); $('overlay').classList.add('hide');
     busy = true; await resolve(); await ensurePlayable(); busy = false; updateHUD(); scheduleHint(6000);
-    if (cfg.tip) setTimeout(() => toast(cfg.tip), 500);
+    if (!NOLOOP) levelIntro(level, cfg);
+    if (cfg.tip) setTimeout(() => toast(cfg.tip), 1600);
   }
   function checkEnd() {
     if (!$('map').classList.contains('hide')) return;   // left to the map mid-cascade — don't pop an overlay over it
@@ -910,6 +929,8 @@
     $('best').textContent = best.toLocaleString();
     document.querySelectorAll('.boost').forEach(bt => bt.addEventListener('click', () => useBooster(bt.dataset.b)));
     const hb = $('home'); if (hb) hb.addEventListener('click', goHome);
+    const gg = $('gameGear'); if (gg) gg.addEventListener('click', openSettings);   // settings while playing
+    if (!NOLOOP) setTimeout(preloadArt, 1200);                                       // warm the art cache off the critical path
     $('mapPlay').addEventListener('click', () => playLevel(Math.min(getUnlocked(), MAXLEVELS)));
     $('menuPlay').addEventListener('click', openMap);
     $('mapBack').addEventListener('click', openMenu);
