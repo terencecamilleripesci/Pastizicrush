@@ -710,7 +710,14 @@
     confettiRain(); toast('🎁 Daily bonus: +75 coins!');
   }
   function updateCoinsUI() { const c = getCoins(); const a = $('coinsNum'), b = $('gCoins'); if (a) a.textContent = c; if (b) b.textContent = c; updateBoosterUI(); }
-  function updateBoosterUI() { const c = getCoins(); document.querySelectorAll('.boost').forEach(bt => bt.classList.toggle('cant', c < BCOST[bt.dataset.b])); }
+  function updateBoosterUI() {
+    const c = getCoins();
+    document.querySelectorAll('.boost').forEach(bt => {
+      const b = bt.dataset.b, own = invCount(b);
+      bt.classList.toggle('cant', own <= 0 && c < BCOST[b]);
+      const bc = bt.querySelector('.bc'); if (bc) { bc.textContent = own > 0 ? '×' + own : BCOST[b]; bc.classList.toggle('owned', own > 0); }
+    });
+  }
   function renderMeta() {
     const { lives, next } = lifeState();
     const ml = $('livesNum'); if (ml) ml.textContent = lives;
@@ -722,25 +729,51 @@
   function startMetaTicker() { renderMeta(); if (!metaTimer && !NOLOOP) metaTimer = setInterval(renderMeta, 1000); }
   function stopMetaTicker() { if (metaTimer) { clearInterval(metaTimer); metaTimer = null; } }
 
-  /* ---------- boosters ---------- */
+  /* ---------- boosters + power-up shop ---------- */
   const BCOST = { moves: 30, shuffle: 40, line: 50, colour: 60, area: 70 };
+  const BOOST_META = {
+    moves: { icon: '➕', name: '+5 Moves', desc: 'Five extra moves' },
+    shuffle: { icon: '🔀', name: 'Shuffle', desc: 'Reshuffle the whole board' },
+    line: { icon: '🚀', name: 'Kinnie Rocket', desc: 'Clears a full row + column' },
+    colour: { icon: '🫧', name: 'Kinnie Splash', desc: 'Clears one whole colour' },
+    area: { icon: '🎆', name: 'Festa Firework', desc: 'Blows up a 3×3 area' },
+  };
+  const getInv = () => { try { return JSON.parse(localStorage.getItem('pc_inv') || '{}'); } catch { return {}; } };
+  const invCount = b => getInv()[b] || 0;
+  function addInv(b, n) { const v = getInv(); v[b] = Math.max(0, (v[b] || 0) + n); localStorage.setItem('pc_inv', JSON.stringify(v)); }
+  function payBooster(b) { if (invCount(b) > 0) { addInv(b, -1); updateBoosterUI(); return true; } if (getCoins() >= BCOST[b]) { setCoins(getCoins() - BCOST[b]); return true; } return false; }
   let aiming = null;
   function markAim() { board.classList.add('aim'); document.querySelectorAll('.boost').forEach(b => b.classList.toggle('on', b.dataset.b === aiming)); }
   function clearAim() { board.classList.remove('aim'); document.querySelectorAll('.boost').forEach(b => b.classList.remove('on')); }
   function useBooster(b) {
     if (busy) return;
-    const cost = BCOST[b];
-    if (getCoins() < cost) { toast('Not enough coins 🪙'); return; }
-    if (b === 'moves') { setCoins(getCoins() - cost); moves += 5; updateHUD(); toast('➕ +5 moves!'); return; }
-    if (b === 'shuffle') { setCoins(getCoins() - cost); doShuffle(); return; }
+    if (invCount(b) <= 0 && getCoins() < BCOST[b]) { toast('Get more in the 🛒 Shop'); return; }
+    if (b === 'moves') { if (payBooster(b)) { moves += 5; updateHUD(); toast('➕ +5 moves!'); } return; }
+    if (b === 'shuffle') { if (payBooster(b)) doShuffle(); return; }
     if (aiming === b) { aiming = null; clearAim(); return; }        // toggle off
-    aiming = b; markAim(); toast('Tap a piece to use it');           // targeted — deduct on apply
+    aiming = b; markAim(); toast('Tap a piece to use it');           // targeted — pay on apply
+  }
+  // ---- shop ----
+  function openShop() { renderShop(); $('shop').classList.remove('hide'); }
+  function buyBooster(b) { if (getCoins() < BCOST[b]) { toast('Not enough coins 🪙'); return; } setCoins(getCoins() - BCOST[b]); addInv(b, 1); renderShop(); updateBoosterUI(); toast(BOOST_META[b].name + ' bought! 🎉'); }
+  function renderShop() {
+    const sc = $('shopCoins'); if (sc) sc.textContent = getCoins();
+    const today = new Date().toISOString().slice(0, 10), claimed = localStorage.getItem('pc_dealDay') === today, dd = $('dailyDeal');
+    if (dd) {
+      dd.innerHTML = `<div class="deal-tag">✨ Daily Deal</div><div class="deal-body"><span class="deal-ic">🎆</span> <b>Festa Firework</b> — <s>🪙${BCOST.area}</s> FREE!</div>` +
+        (claimed ? `<button class="btn btn-ghost" disabled>Claimed ✓ — back tomorrow</button>` : `<button class="btn" id="claimDeal">🎁 Claim FREE</button>`);
+      if (!claimed) $('claimDeal').addEventListener('click', () => { localStorage.setItem('pc_dealDay', today); addInv('area', 1); confettiRain(); renderShop(); updateBoosterUI(); toast('🎆 Festa Firework claimed!'); });
+    }
+    const sl = $('shopList');
+    if (sl) {
+      sl.innerHTML = Object.keys(BCOST).map(b => { const m = BOOST_META[b], own = invCount(b); return `<div class="shop-row"><span class="shop-ic">${m.icon}</span><span class="shop-info"><b>${m.name}</b><small>${m.desc}</small></span>${own ? `<span class="shop-own">×${own}</span>` : ''}<button class="shop-buy" data-b="${b}">🪙 ${BCOST[b]}</button></div>`; }).join('');
+      sl.querySelectorAll('.shop-buy').forEach(bt => bt.addEventListener('click', () => buyBooster(bt.dataset.b)));
+    }
   }
   async function applyBooster(t) {
     const b = aiming; aiming = null; clearAim();
     if (!t || t.type === ING) return;
-    const cost = BCOST[b]; if (getCoins() < cost) return;
-    setCoins(getCoins() - cost);
+    if (!payBooster(b)) return;
     busy = true; const set = new Set();
     if (b === 'line') { for (let c = 0; c < COLS; c++) if (grid[t.r][c]) set.add(grid[t.r][c]); for (let r = 0; r < ROWS; r++) if (grid[r][t.c]) set.add(grid[r][t.c]); comboText('KINNIE ROCKET!'); }
     else if (b === 'colour') { const ty = t.type; allTiles().forEach(u => { if (u.type === ty) set.add(u); }); comboText('KINNIE SPLASH!'); }
@@ -834,7 +867,8 @@
         if (nw >= 0 && nw < worlds) { viewWorld = nw; buildMap(); }
       }
     });
-    $('btnShop').addEventListener('click', () => toast('🛒 Shop coming soon!'));
+    $('btnShop').addEventListener('click', openShop);
+    $('shopClose').addEventListener('click', () => $('shop').classList.add('hide'));
     $('btnDaily').addEventListener('click', claimDaily);
     // settings panel
     $('gear').addEventListener('click', openSettings);
