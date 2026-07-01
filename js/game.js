@@ -587,7 +587,7 @@
         const locked = lv > unlocked, st = stars[lv] || 0;
         const node = document.createElement('div'); node.className = 'node'; node.style.left = x + '%'; node.style.top = y + 'px';
         const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '') + (lv === cur ? ' current' : '');
-        btn.innerHTML = locked ? `<span class="lock">🔒</span>` : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
+        btn.innerHTML = locked ? '' : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
         if (!locked) btn.addEventListener('click', () => playLevel(lv));
         node.appendChild(btn); sec.appendChild(node);
         if (lv === cur) { const av = document.createElement('div'); av.className = 'avatar'; av.id = 'avatarMarker'; av.textContent = getAvatar(); av.style.left = x + '%'; av.style.top = y + 'px'; sec.appendChild(av); }
@@ -661,11 +661,17 @@
   function getCoins() { const r = localStorage.getItem('pc_coins'); return r == null ? START_COINS : +r; }
   function setCoins(v) { localStorage.setItem('pc_coins', Math.max(0, Math.round(v))); updateCoinsUI(); }
   function addCoins(n) { setCoins(getCoins() + n); }
-  function updateCoinsUI() { const c = getCoins(); const a = $('metaCoins'), b = $('gCoins'); if (a) a.textContent = c; if (b) b.textContent = c; updateBoosterUI(); }
+  function claimDaily() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem('pc_daily') === today) { toast('🎁 Already claimed — come back tomorrow!'); return; }
+    localStorage.setItem('pc_daily', today); addCoins(75); if (navigator.vibrate) try { navigator.vibrate(30); } catch { }
+    confettiRain(); toast('🎁 Daily bonus: +75 coins!');
+  }
+  function updateCoinsUI() { const c = getCoins(); const a = $('coinsNum'), b = $('gCoins'); if (a) a.textContent = c; if (b) b.textContent = c; updateBoosterUI(); }
   function updateBoosterUI() { const c = getCoins(); document.querySelectorAll('.boost').forEach(bt => bt.classList.toggle('cant', c < BCOST[bt.dataset.b])); }
   function renderMeta() {
     const { lives, next } = lifeState();
-    const ml = $('metaLives'); if (ml) ml.textContent = '❤️'.repeat(lives) + '🤍'.repeat(MAX_LIVES - lives);
+    const ml = $('livesNum'); if (ml) ml.textContent = lives;
     const tt = $('metaTimer');
     if (tt) { if (lives >= MAX_LIVES || !next) tt.textContent = 'Lives full'; else { const s = Math.max(0, Math.ceil((next - Date.now()) / 1000)); tt.textContent = '❤️ +1 in ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); } }
     updateCoinsUI();
@@ -773,6 +779,9 @@
     $('best').textContent = best.toLocaleString();
     document.querySelectorAll('.boost').forEach(bt => bt.addEventListener('click', () => useBooster(bt.dataset.b)));
     const hb = $('home'); if (hb) hb.addEventListener('click', goHome);
+    $('mapPlay').addEventListener('click', () => playLevel(Math.min(getUnlocked(), MAXLEVELS)));
+    $('btnShop').addEventListener('click', () => toast('🛒 Shop coming soon!'));
+    $('btnDaily').addEventListener('click', claimDaily);
     // settings panel
     $('gear').addEventListener('click', openSettings);
     $('setClose').addEventListener('click', () => $('settings').classList.add('hide'));

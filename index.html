@@ -42,7 +42,7 @@
 </defs></svg>
 
 <button id="home" class="homebtn" aria-label="Back to map">🗺️</button>
-<button id="gear" class="gearbtn" aria-label="Settings">⚙️</button>
+<button id="gear" class="gearbtn" aria-label="Settings"></button>
 
 <header class="hud">
   <div class="title">Pastizzi&nbsp;<span>Crush</span></div>
@@ -80,9 +80,9 @@
   <img class="map-logo" src="assets/logo.png" alt="Pastizzi Crush">
   <button class="profile" id="profile" aria-label="Edit account"></button>
   <div class="meta-bar" id="metaBar">
-    <span class="meta-lives" id="metaLives"></span>
+    <span class="lives-hud"><span id="livesNum">5</span></span>
     <span class="meta-timer" id="metaTimer"></span>
-    <span class="meta-coins">🪙 <b id="metaCoins">0</b></span>
+    <span class="coins-hud"><span id="coinsNum">0</span></span>
   </div>
   <p class="map-sub">Choose a level</p>
   <div class="map-list" id="mapList"></div>
@@ -91,6 +91,13 @@
     <div class="lb-list" id="leaderList"></div>
     <div class="lb-note">Top scores on this device</div>
   </div>
+</div>
+
+<!-- Map bottom bar: Shop · Daily · Play -->
+<div class="map-bottom" id="mapBottom">
+  <button class="mb-btn" id="btnShop" aria-label="Shop"><img src="assets/shop.png" alt=""><small>Shop</small></button>
+  <button class="mb-btn" id="btnDaily" aria-label="Daily bonus"><img src="assets/daily.png" alt=""><small>Daily</small></button>
+  <button class="play-fab" id="mapPlay" aria-label="Play"><img src="assets/play.png" alt="Play"></button>
 </div>
 
 <!-- Settings -->

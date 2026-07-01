@@ -80,7 +80,7 @@ img.ic{ display:block; }
   cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; display:none; }
 .homebtn{ left:10px; } .gearbtn{ right:10px; }
 .homebtn:hover,.gearbtn:hover{ transform:scale(1.08) rotate(8deg); background:rgba(255,255,255,.18); }
-.gearbtn{ display:block; }                 /* settings reachable from map & play */
+.gearbtn{ display:block; background:url(assets/gear.png) center/contain no-repeat; border:none; backdrop-filter:none; }
 body.playing .homebtn{ display:block; }    /* home only while playing */
 
 /* settings modal */
@@ -211,7 +211,7 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
     radial-gradient(100% 55% at 50% 108%, #5f2019, transparent 55%),
     linear-gradient(180deg, #3a1512, #260f0d);
   overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
-  padding:max(8px,env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)); }
+  padding:max(8px,env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom)); }
 .map.hide{ display:none; }
 /* festa flag bunting */
 .bunting{ width:100%; height:30px; flex:0 0 auto; margin-bottom:2px;
@@ -246,7 +246,32 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
   background:linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.14) 40%, rgba(0,0,0,.4)); }
 .road{ position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
 .node{ position:absolute; transform:translate(-50%,-50%); z-index:2; }
-.scene .lvl-node{ width:60px; }
+/* level nodes use the green button art */
+.scene .lvl-node{ width:62px; background:url(assets/node.png) center/contain no-repeat !important; border:none; box-shadow:none; color:#fff; }
+.scene .lvl-node .num{ color:#fff; text-shadow:0 2px 3px rgba(0,0,0,.55); font-size:1.3rem; }
+.scene .lvl-node .stars{ color:#fff3b0; text-shadow:0 1px 2px rgba(0,0,0,.7); margin-top:-3px; font-size:.55rem; }
+.scene .lvl-node.locked{ background:url(assets/nodelock.png) center/contain no-repeat !important; }
+.scene .lvl-node:active{ transform:translateY(3px); }
+.scene .lvl-node.current{ animation:curglow 1.2s ease-in-out infinite; }
+@keyframes curglow{ 0%,100%{ filter:drop-shadow(0 0 1px rgba(255,240,160,.6)) } 50%{ filter:drop-shadow(0 0 12px rgba(255,240,160,1)) } }
+/* bottom bar: Shop · Daily · Play */
+.map-bottom{ position:fixed; left:0; right:0; bottom:calc(6px + env(safe-area-inset-bottom)); z-index:56;
+  display:none; align-items:center; justify-content:space-between; gap:8px; padding:0 16px; pointer-events:none; }
+body:not(.playing) .map-bottom{ display:flex; }
+.map-bottom > *{ pointer-events:auto; }
+.mb-btn{ background:none; border:0; padding:0; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:1px;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+.mb-btn img{ width:52px; height:52px; object-fit:contain; transition:transform .12s; }
+.mb-btn:active img{ transform:scale(.9); }
+.mb-btn small{ font-size:.6rem; font-weight:800; color:#fff; text-shadow:0 1px 2px #000; }
+.play-fab{ border:0; background:none; padding:0; cursor:pointer; filter:drop-shadow(0 5px 9px rgba(0,0,0,.55)); }
+.play-fab img{ width:min(40vw,170px); height:auto; display:block; transition:transform .12s; }
+.play-fab:active img{ transform:scale(.94); }
+/* lives + coins capsules (map HUD) */
+.lives-hud,.coins-hud{ position:relative; width:118px; height:40px; background-position:center; background-repeat:no-repeat; background-size:contain; }
+.lives-hud{ background-image:url(assets/lives.png); }
+.coins-hud{ background-image:url(assets/coins.png); }
+#livesNum,#coinsNum{ position:absolute; left:52%; top:48%; transform:translate(-50%,-50%); font-weight:900; font-size:1rem; color:#7a3410; }
 .avatar{ position:absolute; z-index:6; transform:translate(-50%,-118%); font-size:2rem; pointer-events:none;
   filter:drop-shadow(0 6px 5px rgba(0,0,0,.55)); animation:avbob 1.5s ease-in-out infinite; }
 @keyframes avbob{ 0%,100%{ margin-top:0 } 50%{ margin-top:-7px } }
