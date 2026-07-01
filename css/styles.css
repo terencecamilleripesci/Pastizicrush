@@ -206,26 +206,33 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
 /* level-select map */
 .map{ position:fixed; inset:0; z-index:45; display:flex; flex-direction:column; align-items:center;
   background:
-    radial-gradient(120% 55% at 50% -8%, rgba(232,181,74,.24), transparent 55%),
+    radial-gradient(120% 42% at 50% -12%, rgba(96,166,214,.28), transparent 46%),
+    radial-gradient(120% 55% at 50% -8%, rgba(232,181,74,.22), transparent 55%),
     radial-gradient(100% 55% at 50% 108%, #5f2019, transparent 55%),
     linear-gradient(180deg, #3a1512, #260f0d);
   overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
   padding:max(8px,env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)); }
 .map.hide{ display:none; }
-.map-logo{ width:min(78%,300px); height:auto; margin:6px auto 0; filter:drop-shadow(0 8px 16px rgba(0,0,0,.5)); }
+/* festa flag bunting */
+.bunting{ width:100%; height:30px; flex:0 0 auto; margin-bottom:2px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='32' viewBox='0 0 64 32'%3E%3Cpath d='M0 3H64' stroke='%237a4a10' stroke-width='2'/%3E%3Cpath d='M4 3H28L16 27Z' fill='%23b5232a'/%3E%3Cpath d='M36 3H60L48 27Z' fill='%23e8b54a'/%3E%3C/svg%3E") repeat-x top center;
+  background-size:auto 30px; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); }
+.map-logo{ width:min(78%,300px); height:auto; margin:2px auto 0; filter:drop-shadow(0 8px 16px rgba(0,0,0,.5)); }
 .map-sub{ color:var(--gold); font-weight:800; letter-spacing:1px; text-transform:uppercase; font-size:.82rem; margin:-4px 0 14px; }
-.map-list{ width:min(100%,460px); display:flex; flex-direction:column; gap:16px; }
-/* world = warm gold panel "box" */
-.world{ background:linear-gradient(180deg, rgba(90,40,20,.55), rgba(60,26,16,.6));
+.map-list{ width:min(100%,460px); display:flex; flex-direction:column; gap:18px; perspective:1100px; }
+/* world = warm gold 3D panel "box" */
+.world{ background:linear-gradient(180deg, rgba(96,44,22,.6), rgba(58,24,15,.66));
   border:2px solid rgba(232,181,74,.55); border-radius:18px; padding:13px;
-  box-shadow:0 8px 20px -8px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,220,150,.25); }
+  transform:rotateX(6deg); transform-origin:center 85%; transition:transform .28s ease, box-shadow .28s ease;
+  box-shadow:0 16px 28px -12px rgba(0,0,0,.75), 0 5px 0 rgba(120,70,20,.45), inset 0 1px 0 rgba(255,220,150,.3); }
+.world:hover{ transform:rotateX(0deg) translateZ(14px); box-shadow:0 22px 34px -14px rgba(0,0,0,.8), 0 5px 0 rgba(120,70,20,.45), inset 0 1px 0 rgba(255,220,150,.35); }
 .world-name{ color:var(--gold); font-weight:800; font-size:.9rem; margin-bottom:10px; text-align:center; letter-spacing:.5px; }
 .world-row{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
-/* level cut-out = same cream-gold material as the box */
+/* level cut-out = 3D cream-gold coin */
 .lvl-node{ aspect-ratio:1; border-radius:14px; border:2px solid var(--gold); background:linear-gradient(165deg,#ffe6ad,#e6b563);
   color:#7a1717; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font:inherit;
-  box-shadow:0 4px 0 #bf902f, 0 7px 12px -4px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.55); transition:transform .12s; }
-.lvl-node:active{ transform:translateY(3px); box-shadow:0 1px 0 #bf902f; }
+  box-shadow:0 5px 0 #bf902f, 0 9px 14px -4px rgba(0,0,0,.6), inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 7px rgba(150,90,20,.35); transition:transform .12s, box-shadow .12s; }
+.lvl-node:active{ transform:translateY(4px); box-shadow:0 1px 0 #bf902f, inset 0 2px 0 rgba(255,255,255,.5); }
 .lvl-node .num{ font-size:1.3rem; font-weight:900; color:#7a1717; }
 .lvl-node .stars{ font-size:.6rem; letter-spacing:1px; color:#cf911c; }
 .lvl-node.locked{ background:rgba(255,247,236,.06); border-color:rgba(232,181,74,.28); color:#e9cdba; box-shadow:none; cursor:default; opacity:.7; }

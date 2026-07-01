@@ -113,13 +113,20 @@
   function setShape(name) { const fn = SHAPES[name] || SHAPES.full; blocked = Array.from({ length: ROWS }, (_, r) => Array.from({ length: COLS }, (_, c) => !fn(r, c))); }
 
   /* ---------- sound (WebAudio) ---------- */
-  let AC = null;
-  function initAudio() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); loadVoices(); } catch {} }
+  let AC = null, sfxBus = null;
+  function initAudio() {
+    try {
+      if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+      if (!sfxBus) { sfxBus = AC.createGain(); sfxBus.gain.value = 0.5; sfxBus.connect(AC.destination); } // keep effects gentle (50%)
+      if (AC.state === 'suspended') AC.resume(); loadVoices();
+    } catch { }
+  }
+  const sfxOut = () => sfxBus || (AC && AC.destination);
   /* ---------- Maltese voice callouts (real recordings) ---------- */
   const VOICE = {}; let voiceGain = null, voicesLoaded = false, lastVoiceT = 0;
   function loadVoices() {
     if (voicesLoaded || !AC || NOLOOP) return; voicesLoaded = true;
-    voiceGain = AC.createGain(); voiceGain.gain.value = 1; voiceGain.connect(AC.destination);
+    voiceGain = AC.createGain(); voiceGain.gain.value = 1; voiceGain.connect(sfxOut());
     const files = { title: 'assets/voice-title.mp3', mela: 'assets/voice-mela.mp3', prosit: 'assets/voice-prosit.mp3', nomatch: 'assets/voice-nomatch.mp3' };
     for (const k in files) fetch(files[k]).then(r => r.arrayBuffer()).then(a => AC.decodeAudioData(a)).then(buf => { VOICE[k] = buf; }).catch(() => { });
   }
@@ -135,7 +142,7 @@
     if (!AC || !sfxOn) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = type; o.frequency.setValueAtTime(freq, t); if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur);
+    o.connect(g).connect(sfxOut()); o.start(t); o.stop(t + dur);
   }
   function noiseBurst(dur = .35, vol = .26) {
     if (!AC || !sfxOn) return; const n = AC.createBufferSource(), buf = AC.createBuffer(1, Math.floor(AC.sampleRate * dur), AC.sampleRate), d = buf.getChannelData(0);
@@ -143,7 +150,7 @@
     n.buffer = buf; const g = AC.createGain(), f = AC.createBiquadFilter(); f.type = 'lowpass';
     f.frequency.setValueAtTime(1900, AC.currentTime); f.frequency.exponentialRampToValueAtTime(220, AC.currentTime + dur);
     g.gain.setValueAtTime(vol, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + dur);
-    n.connect(f).connect(g).connect(AC.destination); n.start();
+    n.connect(f).connect(g).connect(sfxOut()); n.start();
   }
   // C-major pentatonic ladder — pops climb this scale for that addictive "rising" feel
   const SCALE = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51, 1567.98, 1760.00, 2093.00];
