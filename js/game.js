@@ -99,6 +99,7 @@
     return { shape, type: 'score', target: 3200 + (lv - LEVELS.length) * 700, moves: Math.max(12, 16 - Math.floor(lv / 6)) };
   };
 
+  const NOLOOP = /[?&]t=1/.test(location.search); // headless-test flag: skip perpetual timers
   const board = $('board');
   let grid = [], cell = 56, busy = false, selected = null, down = null, lastSwap = new Set();
   let level = 1, moves = 20, score = 0, target = 1000, best = +(localStorage.getItem('pc_best') || 0);
@@ -137,23 +138,38 @@
     pop: (chain, n) => { const base = Math.min(SCALE.length - 4, (chain - 1)); const k = Math.min(5, Math.max(2, Math.ceil(n / 2))); for (let i = 0; i < k; i++) setTimeout(() => { note(base + i, .12, .16); note(base + i + 2, .12, .05, 'sine'); }, i * 55); },
     special: () => { [0, 2, 4, 6, 8].forEach((s, i) => setTimeout(() => note(s, .1, .16, 'sine'), i * 40)); },
     boom: () => { noiseBurst(.36, .28); beep(150, .42, 'sine', .22, 50); note(8, .14, .1, 'square'); },
-    win: () => { [0, 2, 4, 5, 7, 9, 10].forEach((s, i) => setTimeout(() => note(s, .22, .2), i * 90)); },
+    start: () => { [0, 2, 4].forEach((s, i) => setTimeout(() => note(s + 2, .11, .16), i * 65)); },
+    // triumphant rising triad fanfare
+    win: () => { [[0, 2, 4], [2, 4, 6], [4, 6, 8]].forEach((ch, i) => setTimeout(() => ch.forEach(s => note(s, .3, .15)), i * 150)); setTimeout(() => { note(9, .5, .2); note(11, .5, .12, 'sine'); }, 500); },
   };
 
   /* ---------- background music (procedural, no files) ---------- */
   // Warm Mediterranean loop: soft pad + plucked arpeggio + bass + gentle melody. Pure WebAudio (offline).
   let musicTimer = null, musicGain = null, musicFilter = null, mStep = 0;
   const MROOT = 220; // A3
-  const PROG = [[0, 4, 7, 11], [7, 11, 14, 17], [-3, 0, 4, 9], [-7, -3, 0, 5]]; // I–V–vi–IV with 7ths, warm
-  const MELO = [12, 11, 9, 7, 9, 11, 12, 16, 14, 12, 11, 9];                    // gentle topline
+  const PROG = [[0, 4, 7], [7, 11, 14], [-3, 0, 4], [-7, -3, 0]];   // I – V – vi – IV (triads)
+  // Catchy singable lead hook — 8 steps/bar × 4 bars, semitones from A (null = rest for groove)
+  const LEAD = [
+    12, null, 16, 19, 16, 14, 12, null,
+    11, null, 14, 18, 16, 14, 11, null,
+    9, 12, 14, 16, 14, 12, 9, null,
+    5, 9, 12, 14, 12, 9, 7, null,
+  ];
   function mVoice(semi, dur, vol, type, dest) {
     const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = type; o.frequency.value = MROOT * Math.pow(2, semi / 12);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .04); g.gain.exponentialRampToValueAtTime(.0006, t + dur);
     o.connect(g).connect(dest || musicGain); o.start(t); o.stop(t + dur + .05);
   }
+  function mLead(semi, dur, vol) {                          // bright bell/marimba lead — the hook
+    const t = AC.currentTime, f = MROOT * Math.pow(2, semi / 12);
+    const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain();
+    o.type = 'triangle'; o.frequency.value = f; o2.type = 'sine'; o2.frequency.value = f * 2; g2.gain.value = .35; o2.connect(g2).connect(g);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .015); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
+    o.connect(g).connect(musicGain); o.start(t); o.stop(t + dur + .05); o2.start(t); o2.stop(t + dur + .05);
+  }
   function mPad(chord) {                                   // sustained, detuned, swelling chord
-    const t = AC.currentTime, dur = 2.8;
+    const t = AC.currentTime, dur = 2.5;
     chord.forEach(semi => [0, 0.35].forEach(det => {
       const o = AC.createOscillator(), g = AC.createGain();
       o.type = 'sawtooth'; o.frequency.value = MROOT * Math.pow(2, semi / 12) / 2 * (1 + det / 100);
@@ -162,21 +178,22 @@
     }));
   }
   function startMusic() {
-    if (!AC || muted || musicTimer) return;
+    if (!AC || muted || musicTimer || NOLOOP) return;
     if (!musicGain) {
-      musicGain = AC.createGain(); musicGain.gain.value = .38;
+      musicGain = AC.createGain(); musicGain.gain.value = .34;
       musicFilter = AC.createBiquadFilter(); musicFilter.type = 'lowpass'; musicFilter.frequency.value = 1500; musicFilter.Q.value = .6;
       musicFilter.connect(musicGain); musicGain.connect(AC.destination);
     }
     mStep = 0;
     const beat = () => {
-      const chord = PROG[Math.floor(mStep / 8) % PROG.length], step = mStep % 8;
-      if (step === 0) { mPad(chord); mVoice(chord[0] - 12, 1.5, .3, 'sine'); }     // pad + bass on the bar
-      if (step % 2 === 0) mVoice(chord[(step / 2) % chord.length] + 12, .45, .2, 'triangle'); // arpeggio
-      if (mStep % 4 === 2) mVoice(MELO[Math.floor(mStep / 4) % MELO.length] + 12, .6, .13, 'sine'); // melody
+      const gi = mStep % 32, bar = Math.floor(gi / 8) % PROG.length, chord = PROG[bar], s = gi % 8;
+      if (s === 0) mPad(chord);
+      if (s === 0 || s === 4) mVoice(chord[0] - 12, .5, .26, 'sine');            // bass on beats 1 & 3
+      if (s % 2 === 0) mVoice(chord[(s / 2) % 3] + 12, .34, .11, 'triangle');    // soft arp
+      const L = LEAD[gi]; if (L != null) mLead(L + 12, .26, .24);                // the catchy hook
       mStep++;
     };
-    beat(); musicTimer = setInterval(beat, 340);
+    beat(); if (!NOLOOP) musicTimer = setInterval(beat, 300);
   }
   function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
   function setMuted(m) {
@@ -426,7 +443,9 @@
   function onTap(t) { if (busy || !t) return; if (!selected) return select(t); if (selected === t) return deselect(); if (adj(selected, t)) { const s = selected; trySwap(s, t); } else { deselect(); select(t); } }
   board.addEventListener('pointerdown', e => { initAudio(); const el = e.target.closest('.tile'); if (!el) return; down = { t: el.__t, x: e.clientX, y: e.clientY }; });
   document.addEventListener('pointerup', e => {
-    if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y, ax = Math.abs(dx), ay = Math.abs(dy);
+    if (!down) return;
+    if (aiming) { applyBooster(down.t); down = null; return; }
+    const dx = e.clientX - down.x, dy = e.clientY - down.y, ax = Math.abs(dx), ay = Math.abs(dy);
     if (Math.max(ax, ay) < 8) onTap(down.t);
     else { let dr = 0, dc = 0; if (ax > ay) dc = dx > 0 ? 1 : -1; else dr = dy > 0 ? 1 : -1; const nt = tileAt(down.t.r + dr, down.t.c + dc); if (nt) trySwap(down.t, nt); }
     down = null;
@@ -467,15 +486,17 @@
       const startMoves = levelCfg(level).moves || 1, frac = moves / startMoves;
       const st = frac >= 0.5 ? 3 : frac >= 0.25 ? 2 : 1;
       saveStars(level, st); unlockNext(level);
+      const reward = 20 + st * 15; addCoins(reward);
       sfx.win(); confettiRain();
-      showOverlay('🎉', `Level ${level} cleared!`, goalMsg, 'Next level', 'next');
+      showOverlay('🎉', `Level ${level} cleared!`, `${goalMsg}<br>🪙 <b>+${reward}</b> coins`, 'Next level', 'next');
       $('ovStars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st); $('ovStars').classList.remove('hide');
     }
     else if (moves <= 0) {
+      loseLife(); renderMeta();
       const miss = mode === 'clear' ? `<b>${jellyLeft}</b> left — so close!`
         : mode === 'collect' ? `<b>${collectGoal - collected}</b> more ${pieceMini(collectType)} needed!`
           : mode === 'drop' ? `<b>${dropLeft}</b> luzzi still at sea!` : `You reached <b>${score.toLocaleString()}</b> of ${target.toLocaleString()}.`;
-      showOverlay('😅', 'Out of moves', miss, 'Try again', 'retry');
+      showOverlay('😅', 'Out of moves', `${miss}<br>💔 lost a life`, 'Try again', 'retry');
     }
   }
   /* ---------- level-select map + progress ---------- */
@@ -503,8 +524,86 @@
       sec.appendChild(row); list.appendChild(sec);
     }
   }
-  function playLevel(lv) { initAudio(); startMusic(); level = lv; $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel(); }
-  function openMap() { buildMap(); $('overlay').classList.add('hide'); $('map').classList.remove('hide'); }
+  function playLevel(lv) {
+    if (lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); renderMeta(); return; }
+    stopMetaTicker(); initAudio(); sfx.start(); startMusic(); level = lv; $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
+  }
+  function openMap() { buildMap(); $('overlay').classList.add('hide'); $('map').classList.remove('hide'); startMetaTicker(); }
+
+  /* ---------- lives + coins meta ---------- */
+  const MAX_LIVES = 5, LIFE_MS = 20 * 60 * 1000, START_COINS = 120;
+  function lifeState() {
+    let lives = localStorage.getItem('pc_lives'); lives = lives == null ? MAX_LIVES : +lives;
+    let next = +(localStorage.getItem('pc_life_ts') || 0);
+    if (lives < MAX_LIVES && next) {
+      while (lives < MAX_LIVES && Date.now() >= next) { lives++; next += LIFE_MS; }
+      if (lives >= MAX_LIVES) { lives = MAX_LIVES; next = 0; }
+      localStorage.setItem('pc_lives', lives); localStorage.setItem('pc_life_ts', next || '');
+    }
+    return { lives, next };
+  }
+  function loseLife() {
+    const { lives } = lifeState(); if (lives <= 0) return;
+    if (lives === MAX_LIVES) localStorage.setItem('pc_life_ts', Date.now() + LIFE_MS);
+    localStorage.setItem('pc_lives', lives - 1);
+  }
+  function getCoins() { const r = localStorage.getItem('pc_coins'); return r == null ? START_COINS : +r; }
+  function setCoins(v) { localStorage.setItem('pc_coins', Math.max(0, Math.round(v))); updateCoinsUI(); }
+  function addCoins(n) { setCoins(getCoins() + n); }
+  function updateCoinsUI() { const c = getCoins(); const a = $('metaCoins'), b = $('gCoins'); if (a) a.textContent = c; if (b) b.textContent = c; }
+  function renderMeta() {
+    const { lives, next } = lifeState();
+    const ml = $('metaLives'); if (ml) ml.textContent = '❤️'.repeat(lives) + '🤍'.repeat(MAX_LIVES - lives);
+    const tt = $('metaTimer');
+    if (tt) { if (lives >= MAX_LIVES || !next) tt.textContent = 'Lives full'; else { const s = Math.max(0, Math.ceil((next - Date.now()) / 1000)); tt.textContent = '❤️ +1 in ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); } }
+    updateCoinsUI();
+  }
+  let metaTimer = null;
+  function startMetaTicker() { renderMeta(); if (!metaTimer && !NOLOOP) metaTimer = setInterval(renderMeta, 1000); }
+  function stopMetaTicker() { if (metaTimer) { clearInterval(metaTimer); metaTimer = null; } }
+
+  /* ---------- boosters ---------- */
+  const BCOST = { moves: 30, shuffle: 40, line: 50, colour: 60, area: 70 };
+  let aiming = null;
+  function markAim() { board.classList.add('aim'); document.querySelectorAll('.boost').forEach(b => b.classList.toggle('on', b.dataset.b === aiming)); }
+  function clearAim() { board.classList.remove('aim'); document.querySelectorAll('.boost').forEach(b => b.classList.remove('on')); }
+  function useBooster(b) {
+    if (busy) return;
+    const cost = BCOST[b];
+    if (getCoins() < cost) { toast('Not enough coins 🪙'); return; }
+    if (b === 'moves') { setCoins(getCoins() - cost); moves += 5; updateHUD(); toast('➕ +5 moves!'); return; }
+    if (b === 'shuffle') { setCoins(getCoins() - cost); doShuffle(); return; }
+    if (aiming === b) { aiming = null; clearAim(); return; }        // toggle off
+    aiming = b; markAim(); toast('Tap a piece to use it');           // targeted — deduct on apply
+  }
+  async function applyBooster(t) {
+    const b = aiming; aiming = null; clearAim();
+    if (!t || t.type === ING) return;
+    const cost = BCOST[b]; if (getCoins() < cost) return;
+    setCoins(getCoins() - cost);
+    busy = true; const set = new Set();
+    if (b === 'line') { for (let c = 0; c < COLS; c++) if (grid[t.r][c]) set.add(grid[t.r][c]); for (let r = 0; r < ROWS; r++) if (grid[r][t.c]) set.add(grid[r][t.c]); comboText('KINNIE ROCKET!'); }
+    else if (b === 'colour') { const ty = t.type; allTiles().forEach(u => { if (u.type === ty) set.add(u); }); comboText('KINNIE SPLASH!'); }
+    else if (b === 'area') { for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { const u = tileAt(t.r + dr, t.c + dc); if (u) set.add(u); } comboText('FESTA FIREWORK!'); }
+    expandSpecials(set); sfx.special();
+    await eliminate(set, set.size * 20, { chain: 2, shake: true, special: true });
+    await resolve(); await deliverIngredients();
+    busy = false; updateHUD(); checkEnd();
+  }
+  async function doShuffle() {
+    busy = true;
+    const movable = allTiles().filter(t => !t.special && t.type !== ING);
+    const types = movable.map(t => t.type);
+    for (let att = 0; att < 25; att++) {
+      for (let i = types.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[types[i], types[j]] = [types[j], types[i]]; }
+      movable.forEach((t, i) => t.type = types[i]);
+      if (findMatches().length === 0) break;
+    }
+    movable.forEach(t => { t.el.innerHTML = `<img class="ic" src="${TYPES[t.type].img}" alt="" draggable="false">`; });
+    toast('🔀 Board shuffled'); await sleep(140);
+    await resolve(); await deliverIngredients();
+    busy = false; updateHUD(); checkEnd();
+  }
 
   const forcedLevel = +new URLSearchParams(location.search).get('lvl') || 0;
   $('ovBtn').addEventListener('click', () => { initAudio(); startMusic(); if (overlayAction === 'next') level++; if (overlayAction === 'start') level = forcedLevel || 1; startLevel(); });
@@ -530,10 +629,12 @@
   document.addEventListener('DOMContentLoaded', () => {
     $('best').textContent = best.toLocaleString();
     const sb = $('snd'); if (sb) { sb.textContent = muted ? '🔇' : '🔊'; sb.classList.toggle('off', muted); sb.addEventListener('click', () => setMuted(!muted)); }
+    document.querySelectorAll('.boost').forEach(bt => bt.addEventListener('click', () => useBooster(bt.dataset.b)));
+    renderMeta();
     const ib = $('installBtn'), ix = $('installX');
     if (ib) ib.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('install').classList.add('hide'); });
     if (ix) ix.addEventListener('click', () => { $('install').classList.add('hide'); localStorage.setItem('pc_noinstall', '1'); });
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    if ('serviceWorker' in navigator && !NOLOOP) navigator.serviceWorker.register('sw.js').catch(() => {});
     // On iPhone Safari you must add the app to your home screen before you can play
     if (isIOS() && !isStandalone() && !forcedLevel) {
       $('iosgateMsg').innerHTML = "To play, add Pastizzi Crush to your home screen:<br>1. Tap <b>Share</b> " + SHARE_SVG + "<br>2. Choose <b>“Add to Home Screen”</b><br>3. Open it from your home screen 🥟";
