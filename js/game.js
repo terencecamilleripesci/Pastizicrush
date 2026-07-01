@@ -509,14 +509,15 @@
   }
   function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1600); }
   function showOverlay(emoji, title, text, btn, action) { $('ovEmoji').textContent = emoji; $('ovStars').classList.add('hide'); $('ovTitle').textContent = title; $('ovText').innerHTML = text; $('ovBtn').textContent = btn; overlayAction = action; $('overlay').classList.remove('hide'); }
-  const FRAME_TINTS = ['#e8b54a', '#c8313a', '#3f7cc0', '#6fa03a', '#d98a2c', '#9b6bd0'];
+  // frame colour matched to each world's scene (not random — keeps it consistent with the background)
+  const WORLD_FRAME = ['#e8b54a', '#e6b24a', '#8f9be0', '#37b0be', '#8cb84a', '#3fc4d4', '#efc24a', '#6fa0c8', '#e0a24a', '#d99a3a'];
   async function startLevel() {
     const cfg = levelCfg(level); mode = cfg.type || 'score'; target = cfg.target || 0; moves = cfg.moves; score = 0; selected = null;
     // in-game background = the world you're playing (world 1 has 5 variants → different each play)
     const gw = Math.floor((level - 1) / WORLD_SIZE);
     const igPool = gw === 0 ? ['assets/ig1.jpg', 'assets/ig2.jpg', 'assets/ig3.jpg', 'assets/ig4.jpg', 'assets/ig5.jpg'] : ['assets/world' + (gw + 1) + '.jpg'];
     $('gamebg').style.backgroundImage = `url(${igPool[Math.floor(Math.random() * igPool.length)]})`;
-    board.style.setProperty('--frame', FRAME_TINTS[Math.floor(Math.random() * FRAME_TINTS.length)]);
+    board.style.setProperty('--frame', WORLD_FRAME[gw % WORLD_FRAME.length]);
     collected = 0; collectGoal = 0; dropLeft = 0; totalDrop = 0;
     if (mode === 'collect') { collectType = cfg.collect.t; collectGoal = cfg.collect.n; }
     if (mode === 'drop') { dropLeft = totalDrop = cfg.drop; }
