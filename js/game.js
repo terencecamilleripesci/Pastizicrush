@@ -567,6 +567,19 @@
     'linear-gradient(180deg,#b0762c,#e8c46a)',   // 10 Pastizzi Factory
   ];
   const worldBgURL = w => `assets/world${w + 1}.jpg`;   // optional real art per world
+  // per-world road palette (edge, sandy body, cobble dash) so the path blends into each scene
+  const WORLD_ROAD = [
+    { e: '#3f7cc0', b: '#e6cd94', d: '#f4e2b6' }, // 1 Village Bakery
+    { e: '#4a86c8', b: '#ecd9a8', d: '#f7ead0' }, // 2 Valletta limestone
+    { e: '#caa143', b: '#7d6947', d: '#d8c48a' }, // 3 Mdina Night — warm lantern stone
+    { e: '#2f9aa8', b: '#e6cd94', d: '#f4e2b6' }, // 4 Marsaxlokk — teal edge
+    { e: '#6fa03a', b: '#c9a86a', d: '#e6d09a' }, // 5 Gozo Farm — dirt
+    { e: '#38c0d0', b: '#ecdcb0', d: '#f7ecd2' }, // 6 Blue Lagoon — turquoise
+    { e: '#e8b54a', b: '#a97f48', d: '#e8cf94' }, // 7 Festa Week — gold, lit
+    { e: '#4a86c8', b: '#e6d3a2', d: '#f2e2be' }, // 8 Three Cities
+    { e: '#e0954a', b: '#cfa76a', d: '#efcf96' }, // 9 Dingli Cliffs — sunset
+    { e: '#5a8fb0', b: '#e6cd94', d: '#f4e2b6' }, // 10 Pastizzi Factory — steel
+  ];
   const NODE_GAP = 92;
   function buildMap() {
     const list = $('mapList'); if (!list) return;
@@ -582,11 +595,12 @@
       sec.insertAdjacentHTML('beforeend', `<div class="scene-tint"></div><div class="world-ribbon">${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}<span>World ${w + 1}</span></div>`);
       const pos = []; let d = '';
       for (let j = 0; j < n; j++) { const lv = w * WORLD_SIZE + j + 1, x = 50 + 30 * Math.sin(lv * 0.7), y = 80 + j * NODE_GAP; pos.push({ lv, x, y }); d += (j === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' '; }
+      const rd = WORLD_ROAD[w % WORLD_ROAD.length];
       sec.insertAdjacentHTML('beforeend', `<svg class="road" viewBox="0 0 100 ${sceneH}" preserveAspectRatio="none">` +
         `<path d="${d}" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +   // soft shadow
-        `<path d="${d}" fill="none" stroke="#3f7cc0" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +           // blue edge
-        `<path d="${d}" fill="none" stroke="#e6cd94" stroke-width="23" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +           // sandy path
-        `<path d="${d}" fill="none" stroke="#f4e2b6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 12" vector-effect="non-scaling-stroke" opacity=".7"/>` + // cobble dashes
+        `<path d="${d}" fill="none" stroke="${rd.e}" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +            // edge
+        `<path d="${d}" fill="none" stroke="${rd.b}" stroke-width="23" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +            // sandy path
+        `<path d="${d}" fill="none" stroke="${rd.d}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 12" vector-effect="non-scaling-stroke" opacity=".7"/>` + // cobble dashes
         `</svg>`);
       for (const { lv, x, y } of pos) {
         const locked = lv > unlocked, st = stars[lv] || 0;
