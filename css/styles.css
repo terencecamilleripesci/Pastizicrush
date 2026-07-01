@@ -249,7 +249,12 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
 /* level nodes use the green button art */
 .scene .lvl-node{ width:62px; background:url(assets/node.png) center/contain no-repeat !important; border:none; box-shadow:none; color:#fff; }
 .scene .lvl-node .num{ color:#fff; text-shadow:0 2px 3px rgba(0,0,0,.55); font-size:1.3rem; }
-.scene .lvl-node .stars{ color:#fff3b0; text-shadow:0 1px 2px rgba(0,0,0,.7); margin-top:-3px; font-size:.55rem; }
+.scene .lvl-node{ position:relative; overflow:visible; }
+.scene .lvl-node .stars{ position:absolute; top:-14px; left:50%; transform:translateX(-50%); display:flex; align-items:flex-end; gap:1px; white-space:nowrap; pointer-events:none; }
+.scene .lvl-node .stars b{ font-size:.72rem; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,.8); }
+.scene .lvl-node .stars b.on{ color:#ffd24a; }
+.scene .lvl-node .stars b.off{ color:rgba(255,255,255,.4); }
+.scene .lvl-node .stars b:nth-child(2){ font-size:.9rem; transform:translateY(-3px); }
 .scene .lvl-node.locked{ background:url(assets/nodelock.png) center/contain no-repeat !important; }
 .scene .lvl-node:active{ transform:translateY(3px); }
 .scene .lvl-node.current{ animation:curglow 1.2s ease-in-out infinite; }

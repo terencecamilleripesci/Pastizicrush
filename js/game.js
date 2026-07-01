@@ -613,7 +613,8 @@
       const lv = w * WORLD_SIZE + j + 1, a = anchors[j], locked = lv > unlocked, st = stars[lv] || 0;
       const node = document.createElement('div'); node.className = 'node'; node.style.left = a[0] + '%'; node.style.top = a[1] + '%';
       const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '') + (lv === cur ? ' current' : '');
-      btn.innerHTML = locked ? '' : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
+      const stars = `<span class="stars"><b class="${st > 0 ? 'on' : 'off'}">★</b><b class="${st > 1 ? 'on' : 'off'}">★</b><b class="${st > 2 ? 'on' : 'off'}">★</b></span>`;
+      btn.innerHTML = locked ? '' : `${stars}<span class="num">${lv}</span>`;
       if (!locked) btn.addEventListener('click', () => playLevel(lv));
       node.appendChild(btn); wrap.appendChild(node);
       if (lv === cur) { const av = document.createElement('div'); av.className = 'avatar'; av.textContent = getAvatar(); av.style.left = a[0] + '%'; av.style.top = a[1] + '%'; wrap.appendChild(av); }
