@@ -120,7 +120,7 @@
   function loadVoices() {
     if (voicesLoaded || !AC || NOLOOP) return; voicesLoaded = true;
     voiceGain = AC.createGain(); voiceGain.gain.value = 1; voiceGain.connect(AC.destination);
-    const files = { title: 'assets/voice-title.mp3', mela: 'assets/voice-mela.mp3', prosit: 'assets/voice-prosit.mp3' };
+    const files = { title: 'assets/voice-title.mp3', mela: 'assets/voice-mela.mp3', prosit: 'assets/voice-prosit.mp3', nomatch: 'assets/voice-nomatch.mp3' };
     for (const k in files) fetch(files[k]).then(r => r.arrayBuffer()).then(a => AC.decodeAudioData(a)).then(buf => { VOICE[k] = buf; }).catch(() => { });
   }
   function playVoice(name, vol = 0.95, minGap = 0, retries = 10) {
@@ -216,21 +216,23 @@
   function setSfx(on) { sfxOn = on; localStorage.setItem('pc_sfx', on ? '1' : '0'); syncSettingsUI(); }
   function setMusic(on) {
     musicOn = on; localStorage.setItem('pc_music', on ? '1' : '0');
-    if (on) { initAudio(); if (onMenu()) startMenuMusic(); else startMusic(); }
-    else { stopMenuMusic(); stopMusic(); }
+    if (on) { initAudio(); onMenu() ? startMenuMusic() : startGameMusic(); }
+    else stopBg();
     syncSettingsUI();
   }
-  /* ---------- menu music (real looped tracks, home screen) ---------- */
-  const MENU_TRACKS = ['assets/menu1.mp3', 'assets/menu2.mp3', 'assets/menu3.mp3'];
-  let menuAudio = null;
+  /* ---------- background music (real looped tracks, 50% volume) ---------- */
+  const MENU_TRACKS = ['assets/menu1.mp3'];                     // home / menu
+  const GAME_TRACKS = ['assets/menu2.mp3', 'assets/menu3.mp3']; // in a level
+  let bgAudio = null, bgList = null;
   const onMenu = () => { const m = $('map'); return m && !m.classList.contains('hide'); };
-  function startMenuMusic() {
+  function playBg(list) {
     if (!musicOn || NOLOOP) return;
-    if (!menuAudio) { menuAudio = new Audio(); menuAudio.loop = true; menuAudio.volume = .55; }
-    if (!menuAudio.src) menuAudio.src = MENU_TRACKS[Math.floor(Math.random() * MENU_TRACKS.length)];
-    if (menuAudio.paused) menuAudio.play().catch(() => { });
+    if (!bgAudio) { bgAudio = new Audio(); bgAudio.loop = true; bgAudio.volume = .5; }
+    if (bgList !== list || bgAudio.paused) { bgList = list; bgAudio.src = list[Math.floor(Math.random() * list.length)]; bgAudio.play().catch(() => { }); }
   }
-  function stopMenuMusic() { if (menuAudio && !menuAudio.paused) menuAudio.pause(); }
+  function stopBg() { if (bgAudio && !bgAudio.paused) bgAudio.pause(); }
+  function startMenuMusic() { playBg(MENU_TRACKS); }
+  function startGameMusic() { playBg(GAME_TRACKS); }
   function syncSettingsUI() {
     const m = $('setMusic'), s = $('setSfx');
     if (m) { m.classList.toggle('on', musicOn); m.textContent = musicOn ? '🎵 Music: ON' : '🎵 Music: OFF'; }
@@ -400,7 +402,7 @@
       const hadSpecial = [...set].some(t => t.special);
       expandSpecials(set);
       let gained = 0; runs.forEach(rn => gained += rn.tiles.length * 30 + (rn.tiles.length >= 5 ? 150 : rn.tiles.length === 4 ? 60 : 0)); gained = Math.round(gained * chain);
-      if (survivors.size) sfx.special(); if (chain >= 2) comboText(chain); if (chain >= 3 || survivors.size) playVoice('mela', .9, 1400);
+      if (survivors.size) sfx.special(); if (chain >= 2) comboText(chain); if (chain >= 3 || survivors.size) playVoice('prosit', .9, 1400);
       survivors.forEach((k, t) => setSpecial(t, k));
       await eliminate(set, gained, { chain, shake: chain >= 2 || set.size >= 6 || survivors.size > 0, special: survivors.size > 0 || hadSpecial });
     }
@@ -440,7 +442,7 @@
     if (other.special === 'super') allTiles().forEach(t => set.add(t));
     else { allTiles().forEach(t => { if (t.type === other.type) set.add(t); }); set.add(sup); }
     expandSpecials(set);
-    moves--; updateHUD(); sfx.special(); comboText('SUPER PASTIZZ!'); playVoice('mela', 1, 900);
+    moves--; updateHUD(); sfx.special(); comboText('SUPER PASTIZZ!'); playVoice('prosit', 1, 900);
     await eliminate(set, set.size * 45, { chain: 2, shake: true, special: true });
     await resolve(); await deliverIngredients();
   }
@@ -457,7 +459,7 @@
       for (let dc = -1; dc <= 1; dc++) { const c = a.c + dc; if (c >= 0 && c < COLS) for (let r = 0; r < ROWS; r++) if (grid[r][c]) set.add(grid[r][c]); }
       comboText('CROSS BLAST!');
     } else { for (let c = 0; c < COLS; c++) if (grid[a.r][c]) set.add(grid[a.r][c]); for (let r = 0; r < ROWS; r++) if (grid[r][a.c]) set.add(grid[r][a.c]); comboText('DOUBLE BLAST!'); }
-    expandSpecials(set); sfx.special(); playVoice('mela', 1, 900);
+    expandSpecials(set); sfx.special(); playVoice('prosit', 1, 900);
     await eliminate(set, set.size * 50, { chain: 3, shake: true, special: true });
     await resolve(); await deliverIngredients();
   }
@@ -467,7 +469,7 @@
     if (a.special === 'super' || b.special === 'super') { busy = true; deselect(); await superSwap(a, b); await ensurePlayable(); busy = false; checkEnd(); return; }
     busy = true; deselect(); lastSwap = new Set([a, b]);
     swapData(a, b); setPos(a, false); setPos(b, false); sfx.swap(); await sleep(180);
-    if (findMatches().length === 0) { swapData(a, b); setPos(a, false); setPos(b, false); sfx.bad(); await sleep(180); toast('No match'); lastSwap = new Set(); busy = false; return; }
+    if (findMatches().length === 0) { swapData(a, b); setPos(a, false); setPos(b, false); sfx.bad(); playVoice('nomatch', .9, 700); await sleep(180); toast('No match'); lastSwap = new Set(); busy = false; return; }
     moves--; updateHUD(); await resolve(); await deliverIngredients(); await ensurePlayable(); lastSwap = new Set(); busy = false; checkEnd();
   }
 
@@ -524,7 +526,7 @@
       const st = frac >= 0.5 ? 3 : frac >= 0.25 ? 2 : 1;
       saveStars(level, st); unlockNext(level);
       const reward = 20 + st * 15; addCoins(reward);
-      sfx.win(); confettiRain(); setTimeout(() => playVoice('prosit', 1), 220); if (navigator.vibrate) try { navigator.vibrate([40, 30, 90]); } catch { }
+      sfx.win(); confettiRain(); setTimeout(() => playVoice('mela', 1), 220); if (navigator.vibrate) try { navigator.vibrate([40, 30, 90]); } catch { }
       showOverlay('🎉', `Level ${level} cleared!`, `${goalMsg}<br>🪙 <b>+${reward}</b> coins`, 'Next level', 'next');
       $('ovStars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st); $('ovStars').classList.remove('hide');
     }
@@ -563,10 +565,10 @@
   }
   function playLevel(lv) {
     if (lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); renderMeta(); return; }
-    stopMetaTicker(); initAudio(); stopMenuMusic(); sfx.start(); playVoice('title', 1); startMusic(); level = lv;
+    stopMetaTicker(); initAudio(); sfx.start(); playVoice('title', 1); startGameMusic(); level = lv;
     document.body.classList.add('playing'); $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
   }
-  function openMap() { document.body.classList.remove('playing'); buildMap(); renderProfile(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); stopMusic(); startMenuMusic(); startMetaTicker(); }
+  function openMap() { document.body.classList.remove('playing'); buildMap(); renderProfile(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); startMenuMusic(); startMetaTicker(); }
   function goHome() { deselect(); aiming = null; clearAim(); openMap(); }
 
   /* ---------- account + settings + leaderboard (local) ---------- */
@@ -704,11 +706,11 @@
 
   const forcedLevel = +new URLSearchParams(location.search).get('lvl') || 0;
   $('ovBtn').addEventListener('click', () => {
-    initAudio(); startMusic();
+    initAudio();
     if (overlayAction === 'next') level++;
     else if (overlayAction === 'start') level = forcedLevel || 1;
     if (!forcedLevel && lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); openMap(); return; }
-    sfx.start(); startLevel();
+    sfx.start(); startGameMusic(); startLevel();
   });
   $('ovMap').addEventListener('click', openMap);
 
