@@ -336,7 +336,7 @@ body.on-map .hud-back{ display:block; }
 .oneworld{ position:absolute; inset:0; }
 .oneworld .scene{ position:absolute; inset:0; height:auto; background-size:cover; background-position:center 28%; background-color:#1a0d0a; animation:sceneIn .28s ease; }
 @keyframes sceneIn{ from{ opacity:.35 } to{ opacity:1 } }
-.oneworld .scene-tint{ background:linear-gradient(180deg, rgba(0,0,0,.05), transparent 22%, rgba(18,8,6,.16) 50%, rgba(18,8,6,.52) 76%, rgba(18,8,6,.82)); }
+.oneworld .scene-tint{ background:linear-gradient(180deg, rgba(0,0,0,.08), transparent 24%, transparent 74%, rgba(0,0,0,.3)); }
 .oneworld .world-ribbon{ top:calc(60px + env(safe-area-inset-top)); }
 /* path art holder, sized to the pathway image's aspect ratio */
 .pathwrap{ position:absolute; left:50%; transform:translateX(-50%);
