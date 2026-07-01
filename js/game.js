@@ -582,7 +582,12 @@
       sec.insertAdjacentHTML('beforeend', `<div class="scene-tint"></div><div class="world-ribbon">${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}<span>World ${w + 1}</span></div>`);
       const pos = []; let d = '';
       for (let j = 0; j < n; j++) { const lv = w * WORLD_SIZE + j + 1, x = 50 + 30 * Math.sin(lv * 0.7), y = 80 + j * NODE_GAP; pos.push({ lv, x, y }); d += (j === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' '; }
-      sec.insertAdjacentHTML('beforeend', `<svg class="road" viewBox="0 0 100 ${sceneH}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 13" vector-effect="non-scaling-stroke" opacity=".55"/></svg>`);
+      sec.insertAdjacentHTML('beforeend', `<svg class="road" viewBox="0 0 100 ${sceneH}" preserveAspectRatio="none">` +
+        `<path d="${d}" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +   // soft shadow
+        `<path d="${d}" fill="none" stroke="#3f7cc0" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +           // blue edge
+        `<path d="${d}" fill="none" stroke="#e6cd94" stroke-width="23" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +           // sandy path
+        `<path d="${d}" fill="none" stroke="#f4e2b6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 12" vector-effect="non-scaling-stroke" opacity=".7"/>` + // cobble dashes
+        `</svg>`);
       for (const { lv, x, y } of pos) {
         const locked = lv > unlocked, st = stars[lv] || 0;
         const node = document.createElement('div'); node.className = 'node'; node.style.left = x + '%'; node.style.top = y + 'px';
