@@ -648,9 +648,10 @@
     viewWorld = Math.max(0, Math.min(worlds - 1, viewWorld));
     const w = viewWorld, pathIdx = w % PATH_NODES.length, anchors = PATH_NODES[pathIdx];
     list.className = 'oneworld'; list.innerHTML = '';
+    // scene photo as a real <img object-fit:cover> — reliably fills the screen, no background-size gremlins
+    const sceneImg = document.createElement('img'); sceneImg.className = 'scenebg'; sceneImg.alt = ''; sceneImg.src = worldBgURL(w);
+    list.appendChild(sceneImg);
     const sec = document.createElement('section'); sec.className = 'scene';
-    sec.style.background = WORLD_BG[w % WORLD_BG.length];
-    const bg = new Image(); bg.onload = () => { sec.style.backgroundImage = `url(${bg.src})`; }; bg.src = worldBgURL(w);
     sec.insertAdjacentHTML('beforeend', `<div class="scene-tint"></div><div class="world-ribbon">${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}<span>World ${w + 1}</span></div>`);
     const wrap = document.createElement('div'); wrap.className = 'pathwrap';
     wrap.innerHTML = `<img class="pathimg" src="assets/path${pathIdx + 1}.png" alt="">`;
