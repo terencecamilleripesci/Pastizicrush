@@ -11,8 +11,8 @@
   "lang": "en",
   "dir": "ltr",
   "categories": ["games", "entertainment", "casual"],
-  "background_color": "#2a0f0f",
-  "theme_color": "#7a1f1f",
+  "background_color": "#140a08",
+  "theme_color": "#140a08",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
