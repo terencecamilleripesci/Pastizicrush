@@ -374,7 +374,30 @@
   let sparkBudget = 0;
   function spark(t) { if (sparkBudget <= 0) return; sparkBudget--; const { x, y } = xy(t.r, t.c), cx = x + (cell - PAD * 2) / 2, cy = y + (cell - PAD * 2) / 2; for (let i = 0; i < 5; i++) { const s = document.createElement('div'); s.className = 'spark'; s.style.left = cx + 'px'; s.style.top = cy + 'px'; s.style.background = TYPES[t.type].c; const a = Math.random() * 6.28, d = 16 + Math.random() * 24; s.style.setProperty('--dx', Math.cos(a) * d + 'px'); s.style.setProperty('--dy', Math.sin(a) * d + 'px'); board.appendChild(s); setTimeout(() => s.remove(), 520); } }
   function shake() { board.classList.add('shake'); setTimeout(() => board.classList.remove('shake'), 320); }
-  function comboText(x) { const m = { 2: 'Tasty!', 3: 'Yummy!', 4: 'Pastizz Power!' }; const txt = typeof x === 'string' ? x : (m[x] || (x >= 5 ? 'MELTDOWN!' : '')); if (!txt) return; const el = document.createElement('div'); el.className = 'combo'; el.textContent = txt; board.appendChild(el); setTimeout(() => el.remove(), 800); }
+  function comboText(x) { const m = { 2: 'Tajjeb!', 3: 'Prosit! 👏', 4: 'Ħelu ħafna! 🤤' }; const txt = typeof x === 'string' ? x : (m[x] || (x >= 5 ? 'FESTA! 🎆' : '')); if (!txt) return; const el = document.createElement('div'); el.className = 'combo'; el.textContent = txt; board.appendChild(el); setTimeout(() => el.remove(), 800); }
+  // Maltese-cross + flag confetti shapes (lazy-built once)
+  let MT_SHAPES = null;
+  function mtShapes() {
+    if (MT_SHAPES) return MT_SHAPES;
+    try { MT_SHAPES = [window.confetti.shapeFromText({ text: '✠', scalar: 2 }), window.confetti.shapeFromText({ text: '🇲🇹', scalar: 2 })]; }
+    catch { MT_SHAPES = []; }
+    return MT_SHAPES;
+  }
+  const MT_COLORS = ['#ffffff', '#cf142b', '#F4B23E', '#F7E27A'];   // Malta white/red + festa gold
+  // festa fireworks — staggered bursts like a village festa finale
+  function festaFireworks(big) {
+    if (!window.confetti || NOLOOP) return;
+    const shots = big ? 6 : 3;
+    for (let i = 0; i < shots; i++) {
+      setTimeout(() => {
+        const x = 0.15 + Math.random() * 0.7, y = 0.15 + Math.random() * 0.35;
+        window.confetti({ particleCount: 46, spread: 360, startVelocity: 26, decay: .92, gravity: .8, ticks: 160, origin: { x, y }, colors: MT_COLORS, disableForReducedMotion: true });
+        const sh = mtShapes();
+        if (sh.length) window.confetti({ particleCount: 8, spread: 360, startVelocity: 20, decay: .92, gravity: .7, ticks: 170, origin: { x, y }, shapes: sh, scalar: 1.6, disableForReducedMotion: true });
+        sfx.boom && sfx.boom();
+      }, i * (big ? 260 : 320));
+    }
+  }
   function flash() { const f = $('flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 130); }
   function shockAt(x, y, power) { const d = document.createElement('div'); d.className = 'shock'; d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.setProperty('--s', (power >= 2 ? 190 : 120) + 'px'); board.appendChild(d); setTimeout(() => d.remove(), 440); }
   function confettiAt(xf, yf, power) { if (!window.confetti) return; window.confetti({ particleCount: 30 + power * 30, spread: 78, startVelocity: 36, decay: .9, scalar: 1.05, ticks: 110, origin: { x: xf, y: yf }, colors: ['#F4B23E', '#E14B3B', '#F7E27A', '#8FB85A', '#C77C46', '#E78BB0', '#ffffff'], disableForReducedMotion: true }); }
@@ -440,6 +463,7 @@
       expandSpecials(set);
       let gained = 0; runs.forEach(rn => gained += rn.tiles.length * 30 + (rn.tiles.length >= 5 ? 150 : rn.tiles.length === 4 ? 60 : 0)); gained = Math.round(gained * chain);
       if (survivors.size) sfx.special(); if (chain >= 2) comboText(chain); if (chain >= 3 || survivors.size) playVoice('prosit', .9, 1400);
+      if (chain === 5) festaFireworks(false);   // village-festa burst on a 5-chain
       survivors.forEach((k, t) => setSpecial(t, k));
       await eliminate(set, gained, { chain, shake: chain >= 2 || set.size >= 6 || survivors.size > 0, special: survivors.size > 0 || hadSpecial });
     }
@@ -459,6 +483,9 @@
         if (t && t.type === ING) {
           dropLeft = Math.max(0, dropLeft - 1); delivered = true; any = true;
           boom(new Set([t]), 2); t.el.classList.add('pop'); grid[br][c] = null;
+          // harbour splash — blue/white burst where the luzzu docks
+          if (window.confetti && !NOLOOP) { const rect = board.getBoundingClientRect(), p = xy(br, c); window.confetti({ particleCount: 24, spread: 75, startVelocity: 24, gravity: 1.15, ticks: 90, origin: { x: (rect.left + p.x + cell / 2) / window.innerWidth, y: (rect.top + p.y + cell / 2) / window.innerHeight }, colors: ['#2c6fb0', '#5ec8ff', '#ffffff', '#1f7ab5'], disableForReducedMotion: true }); }
+          comboText('Wasal il-luzzu! ⛵');
           const el = t.el; setTimeout(() => el.remove(), 200);
         }
       }
@@ -596,7 +623,7 @@
       const st = frac >= 0.5 ? 3 : frac >= 0.25 ? 2 : 1;
       saveStars(level, st); unlockNext(level);
       const reward = 20 + st * 15; addCoins(reward);
-      sfx.win(); confettiRain(); setTimeout(() => playVoice('mela', 1), 220); if (navigator.vibrate) try { navigator.vibrate([40, 30, 90]); } catch { }
+      sfx.win(); confettiRain(); festaFireworks(true); setTimeout(() => playVoice('mela', 1), 220); if (navigator.vibrate) try { navigator.vibrate([40, 30, 90]); } catch { }
       showOverlay('🎉', `Level ${level} cleared!`, `${goalMsg}<br>🪙 <b>+${reward}</b> coins`, 'Next level', 'next');
       $('ovStars').innerHTML = [0, 1, 2].map(i => `<b class="${i < st ? 'on' : 'off'}" style="animation-delay:${(i * 0.2).toFixed(2)}s">★</b>`).join('');
       $('ovStars').classList.remove('hide');
