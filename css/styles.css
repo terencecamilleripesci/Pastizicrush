@@ -297,6 +297,9 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
   display:none; align-items:center; justify-content:space-between; gap:8px; padding:0 16px; pointer-events:none; }
 body:not(.playing) .map-bottom{ display:flex; }
 .map-bottom > *{ pointer-events:auto; }
+/* clean footer scrim so the buttons sit on a tidy strip, fading the busy scene-bottom */
+.map-bottom::before{ content:''; position:fixed; left:0; right:0; bottom:0; height:190px; z-index:-1; pointer-events:none;
+  background:linear-gradient(180deg, transparent, rgba(22,9,7,.5) 48%, rgba(22,9,7,.92)); }
 .mb-btn{ background:none; border:0; padding:0; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:1px;
   filter:drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
 .mb-btn img{ width:52px; height:52px; object-fit:contain; transition:transform .12s; }
@@ -327,7 +330,7 @@ body.on-map .hud-back{ display:block; }
 .oneworld{ position:absolute; inset:0; }
 .oneworld .scene{ position:absolute; inset:0; height:auto; background-size:cover; background-position:center; animation:sceneIn .28s ease; }
 @keyframes sceneIn{ from{ opacity:.35 } to{ opacity:1 } }
-.oneworld .scene-tint{ background:linear-gradient(180deg, rgba(0,0,0,.05), transparent 30%, transparent 70%, rgba(0,0,0,.3)); }
+.oneworld .scene-tint{ background:linear-gradient(180deg, rgba(0,0,0,.05), transparent 22%, rgba(18,8,6,.16) 50%, rgba(18,8,6,.52) 76%, rgba(18,8,6,.82)); }
 .oneworld .world-ribbon{ top:calc(60px + env(safe-area-inset-top)); }
 /* path art holder, sized to the pathway image's aspect ratio */
 .pathwrap{ position:absolute; left:50%; transform:translateX(-50%);
