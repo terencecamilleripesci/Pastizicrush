@@ -478,6 +478,7 @@
     if (cfg.tip) setTimeout(() => toast(cfg.tip), 500);
   }
   function checkEnd() {
+    if (!$('map').classList.contains('hide')) return;   // left to the map mid-cascade — don't pop an overlay over it
     const won = mode === 'clear' ? jellyLeft <= 0 : mode === 'collect' ? collected >= collectGoal : mode === 'drop' ? dropLeft <= 0 : score >= target;
     const goalMsg = mode === 'clear' ? `All cleared! Score <b>${score.toLocaleString()}</b>.`
       : mode === 'collect' ? `Collected all ${collectGoal} ${pieceMini(collectType)}!`
@@ -627,7 +628,13 @@
   }
 
   const forcedLevel = +new URLSearchParams(location.search).get('lvl') || 0;
-  $('ovBtn').addEventListener('click', () => { initAudio(); startMusic(); if (overlayAction === 'next') level++; if (overlayAction === 'start') level = forcedLevel || 1; startLevel(); });
+  $('ovBtn').addEventListener('click', () => {
+    initAudio(); startMusic();
+    if (overlayAction === 'next') level++;
+    else if (overlayAction === 'start') level = forcedLevel || 1;
+    if (!forcedLevel && lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); openMap(); return; }
+    sfx.start(); startLevel();
+  });
   $('ovMap').addEventListener('click', openMap);
 
   window.addEventListener('resize', layout);
