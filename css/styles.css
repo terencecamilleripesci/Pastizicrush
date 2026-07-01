@@ -49,10 +49,13 @@ body.playing #gamebg{ display:block; }
 .board{ position:relative; width:min(100%, calc(100svh - 300px)); aspect-ratio:1; margin:8px auto 0;
   background:transparent; border:none; box-shadow:none;
   touch-action:none; overflow:hidden; perspective:820px; }
-.slot{ position:absolute; top:0; left:0; border-radius:15px; z-index:0; pointer-events:none;
-  background:rgba(8,4,4,.42);
-  box-shadow:inset 0 0 0 2px var(--frameSoft, rgba(232,181,74,.4)),
-             inset 0 3px 7px rgba(0,0,0,.4), 0 2px 4px rgba(0,0,0,.3); }
+.slot{ position:absolute; top:0; left:0; border-radius:14px; z-index:0; pointer-events:none;
+  background:rgba(8,4,4,.4);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05), inset 0 3px 7px rgba(0,0,0,.42), 0 2px 4px rgba(0,0,0,.3); }
+/* outline that traces the level's shape (diamond, octagon, …) in the world colour */
+.frameoutline{ position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; overflow:visible;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.55)); }
+.frameoutline path{ stroke:var(--frame,#e8b54a); }
 .jelly{ position:absolute; border-radius:13px; pointer-events:none; z-index:1;
   background:linear-gradient(135deg, rgba(120,205,255,.42), rgba(90,160,235,.30));
   box-shadow:inset 0 0 0 2px rgba(190,235,255,.55), inset 0 4px 10px rgba(255,255,255,.3); }
@@ -85,8 +88,8 @@ img.ic{ display:block; }
 .sndbtn:hover{ transform:scale(1.08); background:rgba(255,255,255,.18); }
 .sndbtn.off{ opacity:.6; }
 /* corner play buttons — only while playing */
-.homebtn,.gearbtn{ position:fixed; top:10px; z-index:55; width:42px; height:42px; border-radius:50%;
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:1.1rem;
+.homebtn,.gearbtn{ position:fixed; top:calc(env(safe-area-inset-top) + 8px); z-index:60; width:44px; height:44px; border-radius:50%;
+  background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:1.15rem;
   cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; display:none; }
 .homebtn{ left:10px; } .gearbtn{ right:10px; }
 .homebtn:hover,.gearbtn:hover{ transform:scale(1.08) rotate(8deg); background:rgba(255,255,255,.18); }

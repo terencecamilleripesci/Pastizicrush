@@ -268,9 +268,23 @@
       board.appendChild(el);
     }
   }
+  function buildFrame() {                                // trace an outline around the whole level shape
+    board.querySelectorAll('.frameoutline').forEach(e => e.remove());
+    const F = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && !isBlocked(r, c);
+    let d = '';                                          // grid-unit coords 0..8; edge where a filled cell meets a non-filled one
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      if (!F(r, c)) continue;
+      if (!F(r - 1, c)) d += `M${c} ${r}L${c + 1} ${r}`;
+      if (!F(r + 1, c)) d += `M${c} ${r + 1}L${c + 1} ${r + 1}`;
+      if (!F(r, c - 1)) d += `M${c} ${r}L${c} ${r + 1}`;
+      if (!F(r, c + 1)) d += `M${c + 1} ${r}L${c + 1} ${r + 1}`;
+    }
+    board.insertAdjacentHTML('beforeend',
+      `<svg class="frameoutline" viewBox="0 0 ${COLS} ${ROWS}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="7" vector-effect="non-scaling-stroke"/></svg>`);
+  }
   function layout() {
     cell = board.clientWidth / COLS; const sz = cell - PAD * 2;
-    buildSlots();
+    buildSlots(); buildFrame();
     document.querySelectorAll('.tile').forEach(el => { el.style.width = sz + 'px'; el.style.height = sz + 'px'; el.style.fontSize = (cell * 0.54) + 'px'; });
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (grid[r] && grid[r][c]) setPos(grid[r][c], true);
     if (jellyEls) for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (jellyEls[r][c]) placeJelly(jellyEls[r][c], r, c);
