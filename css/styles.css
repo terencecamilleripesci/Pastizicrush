@@ -42,7 +42,8 @@ body::before{ content:''; position:fixed; inset:-15%; z-index:-1; pointer-events
 /* Board — grows to fill the space between HUD and boosters, board centred in it */
 main{ width:min(100%,460px); flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
 /* in-game background = the world you're playing */
-#gamebg{ position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; display:none; }
+#gamebg{ position:fixed; inset:0; z-index:-1; background-color:#20100c; background-size:cover; background-position:center; background-repeat:no-repeat; display:none; }
+body.playing{ background:#20100c; }   /* dark base while playing so nothing red ever peeks through */
 #gamebg::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,8,8,.5), rgba(20,8,8,.35) 40%, rgba(20,8,8,.62)); }
 body.playing #gamebg{ display:block; }
 /* board fits the level shape: no square box — each playable cell gets its own slot */
