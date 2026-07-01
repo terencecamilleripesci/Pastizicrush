@@ -74,10 +74,39 @@ img.ic{ display:block; }
   cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; }
 .sndbtn:hover{ transform:scale(1.08); background:rgba(255,255,255,.18); }
 .sndbtn.off{ opacity:.6; }
-.homebtn{ position:fixed; top:10px; left:10px; z-index:55; width:42px; height:42px; border-radius:50%;
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:1.05rem;
-  cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; }
-.homebtn:hover{ transform:scale(1.08); background:rgba(255,255,255,.18); }
+/* corner play buttons — only while playing */
+.homebtn,.gearbtn{ position:fixed; top:10px; z-index:55; width:42px; height:42px; border-radius:50%;
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:1.1rem;
+  cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; display:none; }
+.homebtn{ left:10px; } .gearbtn{ right:10px; }
+.homebtn:hover,.gearbtn:hover{ transform:scale(1.08) rotate(8deg); background:rgba(255,255,255,.18); }
+.gearbtn{ display:block; }                 /* settings reachable from map & play */
+body.playing .homebtn{ display:block; }    /* home only while playing */
+
+/* settings modal */
+.settings{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:20px;
+  background:rgba(20,6,6,.8); backdrop-filter:blur(4px); }
+.settings.hide{ display:none; }
+.set-panel{ background:var(--panel); color:var(--ink); width:min(100%,330px); border-radius:20px; padding:22px; text-align:center;
+  border:3px solid var(--gold); box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px; }
+.set-panel h2{ color:var(--red); margin-bottom:6px; }
+.set-name{ padding:11px 14px; border-radius:12px; border:2px solid var(--line); font:inherit; font-weight:700; text-align:center; color:var(--ink); background:#fff; }
+.set-toggle{ padding:12px; border-radius:12px; border:2px solid var(--line); background:#f3e2c8; color:var(--muted); font:inherit; font-weight:800; cursor:pointer; transition:.15s; }
+.set-toggle.on{ background:linear-gradient(180deg,#ffe6ad,#e6b563); border-color:var(--gold); color:#7a1717; }
+
+/* leaderboard */
+.leaderboard{ width:min(100%,460px); margin:18px auto 0; background:linear-gradient(180deg, rgba(90,40,20,.55), rgba(60,26,16,.6));
+  border:2px solid rgba(232,181,74,.5); border-radius:18px; padding:14px; box-shadow:0 8px 20px -8px rgba(0,0,0,.6); }
+.lb-title{ text-align:center; color:var(--gold); font-weight:800; font-size:1.05rem; margin-bottom:10px; letter-spacing:.5px; }
+.lb-list{ display:flex; flex-direction:column; gap:5px; }
+.lb-row{ display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:8px; padding:7px 10px; border-radius:10px;
+  background:rgba(255,255,255,.06); color:#f3e2c8; font-weight:700; }
+.lb-row.me{ background:linear-gradient(90deg, rgba(232,181,74,.28), rgba(232,181,74,.12)); border:1px solid rgba(232,181,74,.5); color:#fff; }
+.lb-rank{ font-weight:900; color:var(--gold); text-align:center; }
+.lb-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lb-score{ font-variant-numeric:tabular-nums; color:#ffe08a; }
+.lb-empty{ text-align:center; color:#e9cdba; font-size:.85rem; padding:8px; }
+.lb-note{ text-align:center; color:#c9a892; font-size:.68rem; margin-top:8px; }
 /* booster you can't afford */
 .boost.cant{ opacity:.4; }
 .tile.sel{ z-index:6; }

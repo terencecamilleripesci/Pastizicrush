@@ -106,7 +106,8 @@
   let overlayAction = 'start';
   let mode = 'score', jellyGrid = null, jellyEls = null, coatKind = null, jellyLeft = 0, totalJelly = 0;
   let collected = 0, collectGoal = 0, collectType = 0, dropLeft = 0, totalDrop = 0;
-  let muted = localStorage.getItem('pc_mute') === '1';
+  let sfxOn = localStorage.getItem('pc_sfx') !== '0';     // sound effects + voices
+  let musicOn = localStorage.getItem('pc_music') !== '0'; // background music
   let blocked = null;
   const isBlocked = (r, c) => blocked && blocked[r][c];
   function setShape(name) { const fn = SHAPES[name] || SHAPES.full; blocked = Array.from({ length: ROWS }, (_, r) => Array.from({ length: COLS }, (_, c) => !fn(r, c))); }
@@ -123,7 +124,7 @@
     for (const k in files) fetch(files[k]).then(r => r.arrayBuffer()).then(a => AC.decodeAudioData(a)).then(buf => { VOICE[k] = buf; }).catch(() => { });
   }
   function playVoice(name, vol = 0.95, minGap = 0, retries = 10) {
-    if (muted || !AC) return;
+    if (!sfxOn || !AC) return;
     if (AC.state === 'suspended') AC.resume();
     if (!VOICE[name] || !voiceGain) { if (retries > 0) setTimeout(() => playVoice(name, vol, 0, retries - 1), 130); return; } // wait for decode
     const now = (performance || Date).now(); if (minGap && now - lastVoiceT < minGap) return; lastVoiceT = now;
@@ -131,13 +132,13 @@
     const g = AC.createGain(); g.gain.value = vol; s.connect(g).connect(voiceGain); s.start();
   }
   function beep(freq, dur, type = 'triangle', vol = 0.18, slideTo) {
-    if (!AC || muted) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+    if (!AC || !sfxOn) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = type; o.frequency.setValueAtTime(freq, t); if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur);
   }
   function noiseBurst(dur = .35, vol = .26) {
-    if (!AC || muted) return; const n = AC.createBufferSource(), buf = AC.createBuffer(1, Math.floor(AC.sampleRate * dur), AC.sampleRate), d = buf.getChannelData(0);
+    if (!AC || !sfxOn) return; const n = AC.createBufferSource(), buf = AC.createBuffer(1, Math.floor(AC.sampleRate * dur), AC.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
     n.buffer = buf; const g = AC.createGain(), f = AC.createBiquadFilter(); f.type = 'lowpass';
     f.frequency.setValueAtTime(1900, AC.currentTime); f.frequency.exponentialRampToValueAtTime(220, AC.currentTime + dur);
@@ -194,7 +195,7 @@
     }));
   }
   function startMusic() {
-    if (!AC || muted || musicTimer || NOLOOP) return;
+    if (!AC || !musicOn || musicTimer || NOLOOP) return;
     if (!musicGain) {
       musicGain = AC.createGain(); musicGain.gain.value = .34;
       musicFilter = AC.createBiquadFilter(); musicFilter.type = 'lowpass'; musicFilter.frequency.value = 1500; musicFilter.Q.value = .6;
@@ -212,10 +213,12 @@
     beat(); if (!NOLOOP) musicTimer = setInterval(beat, 300);
   }
   function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
-  function setMuted(m) {
-    muted = m; localStorage.setItem('pc_mute', m ? '1' : '0');
-    const b = $('snd'); if (b) { b.textContent = m ? '🔇' : '🔊'; b.classList.toggle('off', m); }
-    if (m) stopMusic(); else { initAudio(); startMusic(); }
+  function setSfx(on) { sfxOn = on; localStorage.setItem('pc_sfx', on ? '1' : '0'); syncSettingsUI(); }
+  function setMusic(on) { musicOn = on; localStorage.setItem('pc_music', on ? '1' : '0'); if (on) { initAudio(); startMusic(); } else stopMusic(); syncSettingsUI(); }
+  function syncSettingsUI() {
+    const m = $('setMusic'), s = $('setSfx');
+    if (m) { m.classList.toggle('on', musicOn); m.textContent = musicOn ? '🎵 Music: ON' : '🎵 Music: OFF'; }
+    if (s) { s.classList.toggle('on', sfxOn); s.textContent = sfxOn ? '🔊 Effects: ON' : '🔊 Effects: OFF'; }
   }
 
   /* ---------- helpers ---------- */
@@ -496,6 +499,7 @@
   function checkEnd() {
     if (!$('map').classList.contains('hide')) return;   // left to the map mid-cascade — don't pop an overlay over it
     const won = mode === 'clear' ? jellyLeft <= 0 : mode === 'collect' ? collected >= collectGoal : mode === 'drop' ? dropLeft <= 0 : score >= target;
+    if (won || moves <= 0) { if (score > 0) addScore(getPlayer(), score); }   // record on any level end
     const goalMsg = mode === 'clear' ? `All cleared! Score <b>${score.toLocaleString()}</b>.`
       : mode === 'collect' ? `Collected all ${collectGoal} ${pieceMini(collectType)}!`
         : mode === 'drop' ? `All luzzi delivered! ⛵` : `You scored <b>${score.toLocaleString()}</b>.`;
@@ -543,9 +547,29 @@
   }
   function playLevel(lv) {
     if (lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); renderMeta(); return; }
-    stopMetaTicker(); initAudio(); sfx.start(); playVoice('title', 1); startMusic(); level = lv; $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
+    stopMetaTicker(); initAudio(); sfx.start(); playVoice('title', 1); startMusic(); level = lv;
+    document.body.classList.add('playing'); $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
   }
-  function openMap() { buildMap(); $('overlay').classList.add('hide'); $('map').classList.remove('hide'); startMetaTicker(); }
+  function openMap() { document.body.classList.remove('playing'); buildMap(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); startMetaTicker(); }
+  function goHome() { deselect(); aiming = null; clearAim(); openMap(); }
+
+  /* ---------- settings + leaderboard ---------- */
+  function openSettings() { syncSettingsUI(); $('setName').value = getPlayer(); $('settings').classList.remove('hide'); }
+  const getPlayer = () => (localStorage.getItem('pc_player') || 'Player');
+  const SEED_SCORES = [{ name: 'Marija', score: 4200 }, { name: 'Ġużeppi', score: 3600 }, { name: 'Chikku', score: 2900 }, { name: 'Tereża', score: 2100 }];
+  function getScores() { try { const s = JSON.parse(localStorage.getItem('pc_scores') || 'null'); if (Array.isArray(s)) return s; } catch { } return SEED_SCORES.slice(); }
+  function addScore(name, score) {
+    const best = {}; for (const e of getScores()) best[e.name] = Math.max(best[e.name] || 0, e.score);
+    best[name] = Math.max(best[name] || 0, score);
+    const s = Object.keys(best).map(n => ({ name: n, score: best[n] })).sort((a, b) => b.score - a.score).slice(0, 12);
+    localStorage.setItem('pc_scores', JSON.stringify(s));
+  }
+  const escapeHtml = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function renderLeaderboard() {
+    const el = $('leaderList'); if (!el) return;
+    const me = getPlayer(), s = getScores().slice(0, 8);
+    el.innerHTML = s.map((e, i) => `<div class="lb-row${e.name === me ? ' me' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${(e.score || 0).toLocaleString()}</span></div>`).join('') || '<div class="lb-empty">No scores yet — play to get on the board!</div>';
+  }
 
   /* ---------- lives + coins meta ---------- */
   const MAX_LIVES = 5, LIFE_MS = 20 * 60 * 1000, START_COINS = 120;
@@ -676,9 +700,16 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     $('best').textContent = best.toLocaleString();
-    const sb = $('snd'); if (sb) { sb.textContent = muted ? '🔇' : '🔊'; sb.classList.toggle('off', muted); sb.addEventListener('click', () => setMuted(!muted)); }
     document.querySelectorAll('.boost').forEach(bt => bt.addEventListener('click', () => useBooster(bt.dataset.b)));
-    const hb = $('home'); if (hb) hb.addEventListener('click', () => { deselect(); aiming = null; clearAim(); openMap(); });
+    const hb = $('home'); if (hb) hb.addEventListener('click', goHome);
+    // settings panel
+    $('gear').addEventListener('click', openSettings);
+    $('setClose').addEventListener('click', () => $('settings').classList.add('hide'));
+    $('setMusic').addEventListener('click', () => setMusic(!musicOn));
+    $('setSfx').addEventListener('click', () => setSfx(!sfxOn));
+    $('setHome').addEventListener('click', () => { $('settings').classList.add('hide'); goHome(); });
+    $('setName').addEventListener('change', e => { localStorage.setItem('pc_player', (e.target.value || 'Player').slice(0, 12)); });
+    syncSettingsUI();
     renderMeta();
     const ib = $('installBtn'), ix = $('installX');
     if (ib) ib.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('install').classList.add('hide'); });

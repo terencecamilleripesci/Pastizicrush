@@ -42,7 +42,7 @@
 </defs></svg>
 
 <button id="home" class="homebtn" aria-label="Back to map">🗺️</button>
-<button id="snd" class="sndbtn" aria-label="Toggle sound">🔊</button>
+<button id="gear" class="gearbtn" aria-label="Settings">⚙️</button>
 
 <header class="hud">
   <div class="title">Pastizzi&nbsp;<span>Crush</span></div>
@@ -84,6 +84,23 @@
   </div>
   <p class="map-sub">Choose a level</p>
   <div class="map-list" id="mapList"></div>
+  <div class="leaderboard">
+    <div class="lb-title">🏆 Leaderboard</div>
+    <div class="lb-list" id="leaderList"></div>
+    <div class="lb-note">Top scores on this device</div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="settings hide" id="settings">
+  <div class="set-panel">
+    <h2>⚙️ Settings</h2>
+    <input id="setName" class="set-name" maxlength="12" placeholder="Your name" aria-label="Player name">
+    <button class="set-toggle" id="setMusic">🎵 Music: ON</button>
+    <button class="set-toggle" id="setSfx">🔊 Effects: ON</button>
+    <button class="btn" id="setHome">🗺️ Home / Map</button>
+    <button class="btn btn-ghost" id="setClose">Close</button>
+  </div>
 </div>
 
 <!-- Overlay (win / lose / tip) -->
