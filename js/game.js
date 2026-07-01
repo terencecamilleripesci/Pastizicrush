@@ -214,7 +214,23 @@
   }
   function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
   function setSfx(on) { sfxOn = on; localStorage.setItem('pc_sfx', on ? '1' : '0'); syncSettingsUI(); }
-  function setMusic(on) { musicOn = on; localStorage.setItem('pc_music', on ? '1' : '0'); if (on) { initAudio(); startMusic(); } else stopMusic(); syncSettingsUI(); }
+  function setMusic(on) {
+    musicOn = on; localStorage.setItem('pc_music', on ? '1' : '0');
+    if (on) { initAudio(); if (onMenu()) startMenuMusic(); else startMusic(); }
+    else { stopMenuMusic(); stopMusic(); }
+    syncSettingsUI();
+  }
+  /* ---------- menu music (real looped tracks, home screen) ---------- */
+  const MENU_TRACKS = ['assets/menu1.mp3', 'assets/menu2.mp3', 'assets/menu3.mp3'];
+  let menuAudio = null;
+  const onMenu = () => { const m = $('map'); return m && !m.classList.contains('hide'); };
+  function startMenuMusic() {
+    if (!musicOn || NOLOOP) return;
+    if (!menuAudio) { menuAudio = new Audio(); menuAudio.loop = true; menuAudio.volume = .55; }
+    if (!menuAudio.src) menuAudio.src = MENU_TRACKS[Math.floor(Math.random() * MENU_TRACKS.length)];
+    if (menuAudio.paused) menuAudio.play().catch(() => { });
+  }
+  function stopMenuMusic() { if (menuAudio && !menuAudio.paused) menuAudio.pause(); }
   function syncSettingsUI() {
     const m = $('setMusic'), s = $('setSfx');
     if (m) { m.classList.toggle('on', musicOn); m.textContent = musicOn ? '🎵 Music: ON' : '🎵 Music: OFF'; }
@@ -547,10 +563,10 @@
   }
   function playLevel(lv) {
     if (lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); renderMeta(); return; }
-    stopMetaTicker(); initAudio(); sfx.start(); playVoice('title', 1); startMusic(); level = lv;
+    stopMetaTicker(); initAudio(); stopMenuMusic(); sfx.start(); playVoice('title', 1); startMusic(); level = lv;
     document.body.classList.add('playing'); $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
   }
-  function openMap() { document.body.classList.remove('playing'); buildMap(); renderProfile(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); startMetaTicker(); }
+  function openMap() { document.body.classList.remove('playing'); buildMap(); renderProfile(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); stopMusic(); startMenuMusic(); startMetaTicker(); }
   function goHome() { deselect(); aiming = null; clearAim(); openMap(); }
 
   /* ---------- account + settings + leaderboard (local) ---------- */
@@ -714,8 +730,9 @@
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; showInstall('android'); });
 
   // Unlock + warm up audio on the very first interaction anywhere (mobile autoplay policies)
-  window.addEventListener('pointerdown', initAudio);
-  window.addEventListener('touchstart', initAudio, { passive: true });
+  function unlockAudio() { initAudio(); if (musicOn && onMenu()) startMenuMusic(); }
+  window.addEventListener('pointerdown', unlockAudio);
+  window.addEventListener('touchstart', unlockAudio, { passive: true });
 
   document.addEventListener('DOMContentLoaded', () => {
     $('best').textContent = best.toLocaleString();
