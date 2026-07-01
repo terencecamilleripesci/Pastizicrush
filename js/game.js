@@ -307,7 +307,7 @@
   function boom(set, power) {
     let sx = 0, sy = 0, n = 0; set.forEach(t => { const { x, y } = xy(t.r, t.c); sx += x; sy += y; n++; }); if (!n) return;
     const bx = sx / n + (cell - PAD * 2) / 2, by = sy / n + (cell - PAD * 2) / 2;
-    shockAt(bx, by, power); flash(); sfx.boom();
+    shockAt(bx, by, power); flash(); sfx.boom(); if (navigator.vibrate) try { navigator.vibrate(power >= 2 ? 45 : 22); } catch { }
     const rect = board.getBoundingClientRect();
     confettiAt((rect.left + bx) / window.innerWidth, (rect.top + by) / window.innerHeight, power);
   }
@@ -428,12 +428,12 @@
   }
   async function trySwap(a, b) {
     if (busy || !a || !b) return;
-    if (a.special && b.special) { busy = true; deselect(); await comboSwap(a, b); busy = false; checkEnd(); return; }
-    if (a.special === 'super' || b.special === 'super') { busy = true; deselect(); await superSwap(a, b); busy = false; checkEnd(); return; }
+    if (a.special && b.special) { busy = true; deselect(); await comboSwap(a, b); await ensurePlayable(); busy = false; checkEnd(); return; }
+    if (a.special === 'super' || b.special === 'super') { busy = true; deselect(); await superSwap(a, b); await ensurePlayable(); busy = false; checkEnd(); return; }
     busy = true; deselect(); lastSwap = new Set([a, b]);
     swapData(a, b); setPos(a, false); setPos(b, false); sfx.swap(); await sleep(180);
     if (findMatches().length === 0) { swapData(a, b); setPos(a, false); setPos(b, false); sfx.bad(); await sleep(180); toast('No match'); lastSwap = new Set(); busy = false; return; }
-    moves--; updateHUD(); await resolve(); await deliverIngredients(); lastSwap = new Set(); busy = false; checkEnd();
+    moves--; updateHUD(); await resolve(); await deliverIngredients(); await ensurePlayable(); lastSwap = new Set(); busy = false; checkEnd();
   }
 
   /* ---------- input ---------- */
@@ -473,8 +473,8 @@
     setShape(cfg.shape || 'full');
     newBoard(); buildCoats(mode === 'clear' ? cfg.coat : null, mode === 'clear' ? cfg.spec : null);
     if (mode === 'drop') placeIngredients(totalDrop);
-    layout(); updateHUD(); $('overlay').classList.add('hide');
-    busy = true; await resolve(); busy = false; updateHUD();
+    layout(); updateHUD(); updateCoinsUI(); $('overlay').classList.add('hide');
+    busy = true; await resolve(); await ensurePlayable(); busy = false; updateHUD();
     if (cfg.tip) setTimeout(() => toast(cfg.tip), 500);
   }
   function checkEnd() {
@@ -487,7 +487,7 @@
       const st = frac >= 0.5 ? 3 : frac >= 0.25 ? 2 : 1;
       saveStars(level, st); unlockNext(level);
       const reward = 20 + st * 15; addCoins(reward);
-      sfx.win(); confettiRain();
+      sfx.win(); confettiRain(); if (navigator.vibrate) try { navigator.vibrate([40, 30, 90]); } catch { }
       showOverlay('🎉', `Level ${level} cleared!`, `${goalMsg}<br>🪙 <b>+${reward}</b> coins`, 'Next level', 'next');
       $('ovStars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st); $('ovStars').classList.remove('hide');
     }
@@ -550,7 +550,8 @@
   function getCoins() { const r = localStorage.getItem('pc_coins'); return r == null ? START_COINS : +r; }
   function setCoins(v) { localStorage.setItem('pc_coins', Math.max(0, Math.round(v))); updateCoinsUI(); }
   function addCoins(n) { setCoins(getCoins() + n); }
-  function updateCoinsUI() { const c = getCoins(); const a = $('metaCoins'), b = $('gCoins'); if (a) a.textContent = c; if (b) b.textContent = c; }
+  function updateCoinsUI() { const c = getCoins(); const a = $('metaCoins'), b = $('gCoins'); if (a) a.textContent = c; if (b) b.textContent = c; updateBoosterUI(); }
+  function updateBoosterUI() { const c = getCoins(); document.querySelectorAll('.boost').forEach(bt => bt.classList.toggle('cant', c < BCOST[bt.dataset.b])); }
   function renderMeta() {
     const { lives, next } = lifeState();
     const ml = $('metaLives'); if (ml) ml.textContent = '❤️'.repeat(lives) + '🤍'.repeat(MAX_LIVES - lives);
@@ -587,21 +588,41 @@
     else if (b === 'area') { for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { const u = tileAt(t.r + dr, t.c + dc); if (u) set.add(u); } comboText('FESTA FIREWORK!'); }
     expandSpecials(set); sfx.special();
     await eliminate(set, set.size * 20, { chain: 2, shake: true, special: true });
-    await resolve(); await deliverIngredients();
+    await resolve(); await deliverIngredients(); await ensurePlayable();
     busy = false; updateHUD(); checkEnd();
   }
-  async function doShuffle() {
-    busy = true;
+  // is there any legal move left? (a special counts, or a swap that makes a line)
+  function hasMove() {
+    if (allTiles().some(t => t.special)) return true;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const t = grid[r][c]; if (!t || t.type === ING) continue;
+      for (const [dr, dc] of [[0, 1], [1, 0]]) {
+        const u = tileAt(r + dr, c + dc); if (!u || u.type === ING) continue;
+        [t.type, u.type] = [u.type, t.type]; const ok = findMatches().length > 0; [t.type, u.type] = [u.type, t.type];
+        if (ok) return true;
+      }
+    }
+    return false;
+  }
+  function scrambleTypes() {                       // reshuffle the movable pieces (no coins)
     const movable = allTiles().filter(t => !t.special && t.type !== ING);
     const types = movable.map(t => t.type);
-    for (let att = 0; att < 25; att++) {
+    for (let att = 0; att < 40; att++) {
       for (let i = types.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[types[i], types[j]] = [types[j], types[i]]; }
       movable.forEach((t, i) => t.type = types[i]);
-      if (findMatches().length === 0) break;
+      if (findMatches().length === 0 && hasMove()) break;   // valid: no free match, but solvable
     }
     movable.forEach(t => { t.el.innerHTML = `<img class="ic" src="${TYPES[t.type].img}" alt="" draggable="false">`; });
-    toast('🔀 Board shuffled'); await sleep(140);
-    await resolve(); await deliverIngredients();
+  }
+  // never soft-lock: if no move exists, auto-shuffle until one does
+  async function ensurePlayable() {
+    if (busy && aiming) return;
+    let tries = 0;
+    while (!hasMove() && tries++ < 12) { toast('No moves — shuffling! 🔀'); await sleep(220); scrambleTypes(); await sleep(160); await resolve(); }
+  }
+  async function doShuffle() {
+    busy = true; scrambleTypes(); toast('🔀 Board shuffled'); await sleep(140);
+    await resolve(); await deliverIngredients(); await ensurePlayable();
     busy = false; updateHUD(); checkEnd();
   }
 
@@ -630,6 +651,7 @@
     $('best').textContent = best.toLocaleString();
     const sb = $('snd'); if (sb) { sb.textContent = muted ? '🔇' : '🔊'; sb.classList.toggle('off', muted); sb.addEventListener('click', () => setMuted(!muted)); }
     document.querySelectorAll('.boost').forEach(bt => bt.addEventListener('click', () => useBooster(bt.dataset.b)));
+    const hb = $('home'); if (hb) hb.addEventListener('click', () => { deselect(); aiming = null; clearAim(); openMap(); });
     renderMeta();
     const ib = $('installBtn'), ix = $('installX');
     if (ib) ib.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('install').classList.add('hide'); });

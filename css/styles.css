@@ -64,6 +64,12 @@ img.ic{ display:block; }
   cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; }
 .sndbtn:hover{ transform:scale(1.08); background:rgba(255,255,255,.18); }
 .sndbtn.off{ opacity:.6; }
+.homebtn{ position:fixed; top:10px; left:10px; z-index:55; width:42px; height:42px; border-radius:50%;
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:1.05rem;
+  cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s, background .15s; }
+.homebtn:hover{ transform:scale(1.08); background:rgba(255,255,255,.18); }
+/* booster you can't afford */
+.boost.cant{ opacity:.4; }
 .tile.sel{ z-index:6; }
 .tile.sel .ic{ filter:drop-shadow(0 0 7px #fff) drop-shadow(0 0 14px rgba(255,255,255,.8)) drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
 .tile.pop{ animation:pop .2s ease-in forwards; z-index:4; }

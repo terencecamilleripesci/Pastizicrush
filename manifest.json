@@ -1,12 +1,16 @@
 {
   "id": "pastizzi-crush",
   "name": "Pastizzi Crush",
-  "short_name": "Pastizzi Crush",
-  "description": "A Maltese match-3 game — swap pastizzi, ftira, ġbejna and more.",
+  "short_name": "Pastizzi",
+  "description": "A juicy Maltese match-3 game — swap pastizzi, qassatat, imqaret, figolli & pizza. Match 3 to pop, clear jelly, deliver luzzi and beat every level!",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "orientation": "portrait",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["games", "entertainment", "casual"],
   "background_color": "#2a0f0f",
   "theme_color": "#7a1f1f",
   "icons": [
