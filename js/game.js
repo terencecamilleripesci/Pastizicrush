@@ -596,12 +596,22 @@
     }
     setTimeout(() => { const a = $('avatarMarker'); if (a) a.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60);
   }
+  function setScreen(s) { document.body.classList.remove('on-menu', 'on-map', 'playing'); document.body.classList.add(s); }
   function playLevel(lv) {
     if (lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); renderMeta(); return; }
     stopMetaTicker(); initAudio(); sfx.start(); playVoice('title', 1); startGameMusic(); level = lv;
-    document.body.classList.add('playing'); $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
+    setScreen('playing'); $('menu').classList.add('hide'); $('map').classList.add('hide'); $('overlay').classList.add('hide'); startLevel();
   }
-  function openMap() { document.body.classList.remove('playing'); buildMap(); renderProfile(); renderLeaderboard(); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('map').classList.remove('hide'); startMenuMusic(); startMetaTicker(); }
+  function openMenu() {
+    setScreen('on-menu'); renderProfile(); renderLeaderboard();
+    $('map').classList.add('hide'); $('overlay').classList.add('hide'); $('settings').classList.add('hide'); $('account').classList.add('hide');
+    $('menu').classList.remove('hide'); startMenuMusic(); startMetaTicker();
+  }
+  function openMap() {
+    setScreen('on-map'); buildMap();
+    $('menu').classList.add('hide'); $('overlay').classList.add('hide'); $('settings').classList.add('hide');
+    $('map').classList.remove('hide'); startMenuMusic(); startMetaTicker();
+  }
   function goHome() { deselect(); aiming = null; clearAim(); openMap(); }
 
   /* ---------- account + settings + leaderboard (local) ---------- */
@@ -780,6 +790,8 @@
     document.querySelectorAll('.boost').forEach(bt => bt.addEventListener('click', () => useBooster(bt.dataset.b)));
     const hb = $('home'); if (hb) hb.addEventListener('click', goHome);
     $('mapPlay').addEventListener('click', () => playLevel(Math.min(getUnlocked(), MAXLEVELS)));
+    $('menuPlay').addEventListener('click', openMap);
+    $('mapBack').addEventListener('click', openMenu);
     $('btnShop').addEventListener('click', () => toast('🛒 Shop coming soon!'));
     $('btnDaily').addEventListener('click', claimDaily);
     // settings panel
@@ -808,6 +820,6 @@
       return; // block the map/game until installed
     }
     buildMap();
-    if (forcedLevel) playLevel(forcedLevel); else openMap();   // home = level-select map
+    if (forcedLevel) playLevel(forcedLevel); else openMenu();   // start on the main menu
   });
 })();

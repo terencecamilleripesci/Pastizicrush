@@ -272,6 +272,31 @@ body:not(.playing) .map-bottom{ display:flex; }
 .lives-hud{ background-image:url(assets/lives.png); }
 .coins-hud{ background-image:url(assets/coins.png); }
 #livesNum,#coinsNum{ position:absolute; left:52%; top:48%; transform:translate(-50%,-50%); font-weight:900; font-size:1rem; color:#7a3410; }
+
+/* ===== main menu / map / play screens ===== */
+.tophud{ position:fixed; top:0; left:0; right:0; z-index:57; display:none; align-items:center; gap:8px;
+  padding:max(8px,env(safe-area-inset-top)) 12px 8px; }
+body.on-menu .tophud, body.on-map .tophud{ display:flex; }
+.tophud .meta-timer{ flex:1; text-align:left; }
+.tophud .gearbtn{ position:static; top:auto; right:auto; left:auto; margin-left:auto; }
+.hud-back{ display:none; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:1.25rem; cursor:pointer; flex:0 0 auto; }
+body.on-map .hud-back{ display:block; }
+.homebtn{ display:none !important; } body.playing .homebtn{ display:block !important; }
+.map-bottom{ display:none !important; } body.on-map .map-bottom{ display:flex !important; }
+.map{ padding-top:calc(58px + env(safe-area-inset-top)) !important; }
+.menu{ position:fixed; inset:0; z-index:45; display:flex; flex-direction:column; align-items:center; overflow-y:auto;
+  -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  background:
+    radial-gradient(120% 42% at 50% -12%, rgba(96,166,214,.28), transparent 46%),
+    radial-gradient(120% 55% at 50% -8%, rgba(232,181,74,.22), transparent 55%),
+    radial-gradient(100% 55% at 50% 108%, #5f2019, transparent 55%),
+    linear-gradient(180deg,#3a1512,#260f0d);
+  padding:calc(58px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); }
+.menu.hide{ display:none; }
+.menu-logo{ width:min(82%,330px); height:auto; margin:6px auto 2px; filter:drop-shadow(0 8px 16px rgba(0,0,0,.5)); }
+.menu-play{ border:0; background:none; padding:0; cursor:pointer; margin:16px 0 8px; filter:drop-shadow(0 6px 10px rgba(0,0,0,.55)); }
+.menu-play img{ width:min(64vw,260px); height:auto; display:block; transition:transform .12s; }
+.menu-play:active img{ transform:scale(.95); }
 .avatar{ position:absolute; z-index:6; transform:translate(-50%,-118%); font-size:2rem; pointer-events:none;
   filter:drop-shadow(0 6px 5px rgba(0,0,0,.55)); animation:avbob 1.5s ease-in-out infinite; }
 @keyframes avbob{ 0%,100%{ margin-top:0 } 50%{ margin-top:-7px } }
