@@ -552,23 +552,41 @@
   const getStars = () => { try { return JSON.parse(localStorage.getItem('pc_stars') || '{}'); } catch { return {}; } };
   function saveStars(lv, st) { const s = getStars(); if ((s[lv] || 0) < st) { s[lv] = st; localStorage.setItem('pc_stars', JSON.stringify(s)); } }
   function unlockNext(lv) { if (lv + 1 > getUnlocked()) localStorage.setItem('pc_unlocked', Math.min(MAXLEVELS, lv + 1)); }
+  // Candy-Crush style winding path: serpentine nodes, a dashed road, and your avatar walking to the current level.
+  const MAP_GAP = 92, MAP_AMP = 30;               // vertical spacing (px), horizontal swing (%)
+  const nodeX = i => 50 + MAP_AMP * Math.sin((i - 1) * 0.62);
+  const nodeY = i => 46 + (i - 1) * MAP_GAP;
+  let avatarLevel = null;
   function buildMap() {
     const list = $('mapList'); if (!list) return;
-    const unlocked = getUnlocked(), stars = getStars(); list.innerHTML = '';
-    for (let w = 0; w * WORLD_SIZE < MAXLEVELS; w++) {
-      const sec = document.createElement('div'); sec.className = 'world';
-      const nm = document.createElement('div'); nm.className = 'world-name'; nm.textContent = `${w + 1}. ${WORLD_NAMES[w] || ('World ' + (w + 1))}`; sec.appendChild(nm);
-      const row = document.createElement('div'); row.className = 'world-row';
-      for (let i = 0; i < WORLD_SIZE; i++) {
-        const lv = w * WORLD_SIZE + i + 1; if (lv > MAXLEVELS) break;
-        const locked = lv > unlocked, st = stars[lv] || 0;
-        const node = document.createElement('button'); node.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '');
-        node.innerHTML = locked ? `<span class="lock">🔒</span>` : `<span class="num">${lv}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
-        if (!locked) node.addEventListener('click', () => playLevel(lv));
-        row.appendChild(node);
+    const unlocked = getUnlocked(), stars = getStars();
+    const H = nodeY(MAXLEVELS) + 70; list.className = 'path'; list.style.height = H + 'px'; list.innerHTML = '';
+    // dashed road connecting all nodes
+    let d = '';
+    for (let i = 1; i <= MAXLEVELS; i++) d += (i === 1 ? 'M' : 'L') + nodeX(i).toFixed(1) + ' ' + nodeY(i).toFixed(1) + ' ';
+    list.insertAdjacentHTML('beforeend',
+      `<svg class="road" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#e8b54a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 11" vector-effect="non-scaling-stroke" opacity=".65"/></svg>`);
+    // world banners + level nodes
+    for (let i = 1; i <= MAXLEVELS; i++) {
+      const x = nodeX(i), y = nodeY(i), locked = i > unlocked, st = stars[i] || 0;
+      if ((i - 1) % WORLD_SIZE === 0) {
+        const w = (i - 1) / WORLD_SIZE, side = x < 50 ? 'right' : 'left';
+        list.insertAdjacentHTML('beforeend', `<div class="world-banner ${side}" style="top:${y - 54}px">${w + 1}. ${escapeHtml(WORLD_NAMES[w] || ('World ' + (w + 1)))}</div>`);
       }
-      sec.appendChild(row); list.appendChild(sec);
+      const node = document.createElement('div'); node.className = 'node'; node.style.left = x + '%'; node.style.top = y + 'px';
+      const btn = document.createElement('button'); btn.className = 'lvl-node' + (locked ? ' locked' : '') + (st > 0 ? ' cleared' : '');
+      btn.innerHTML = locked ? `<span class="lock">🔒</span>` : `<span class="num">${i}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
+      if (!locked) btn.addEventListener('click', () => playLevel(i));
+      node.appendChild(btn); list.appendChild(node);
     }
+    // avatar walks to the current (highest unlocked) level
+    const cur = Math.min(unlocked, MAXLEVELS), from = avatarLevel == null ? cur : avatarLevel;
+    const av = document.createElement('div'); av.className = 'avatar'; av.id = 'avatarMarker'; av.textContent = getAvatar();
+    av.style.left = nodeX(from) + '%'; av.style.top = nodeY(from) + 'px'; list.appendChild(av);
+    void av.offsetWidth;                                   // reflow so the move animates
+    requestAnimationFrame(() => { av.style.left = nodeX(cur) + '%'; av.style.top = nodeY(cur) + 'px'; });
+    avatarLevel = cur;
+    setTimeout(() => { const a = $('avatarMarker'); if (a) a.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60); // keep current level in view
   }
   function playLevel(lv) {
     if (lifeState().lives <= 0) { toast('No lives left ❤️ — wait for a refill'); renderMeta(); return; }

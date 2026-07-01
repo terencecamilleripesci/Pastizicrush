@@ -239,6 +239,20 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
 .lvl-node.locked .lock{ font-size:1.2rem; }
 .lvl-node.cleared{ background:linear-gradient(165deg,#fff2cf,#ffd977); border-color:#fff0c0; box-shadow:0 4px 0 #d8a33a, 0 0 12px rgba(255,215,120,.55), inset 0 1px 0 rgba(255,255,255,.7); }
 
+/* ===== Candy-Crush winding path map ===== */
+.path{ position:relative; width:min(100%,440px); margin:4px auto 0; }
+.road{ position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+.node{ position:absolute; transform:translate(-50%,-50%); z-index:2; }
+.path .lvl-node{ width:58px; }
+.avatar{ position:absolute; z-index:6; transform:translate(-50%,-118%); font-size:2rem; pointer-events:none;
+  transition:left .8s cubic-bezier(.4,1.25,.5,1), top .8s cubic-bezier(.4,1.25,.5,1);
+  filter:drop-shadow(0 6px 5px rgba(0,0,0,.55)); animation:avbob 1.5s ease-in-out infinite; }
+@keyframes avbob{ 0%,100%{ margin-top:0 } 50%{ margin-top:-7px } }
+.world-banner{ position:absolute; z-index:3; padding:5px 12px; border-radius:999px; font-weight:800; font-size:.76rem; color:#fff;
+  background:linear-gradient(180deg,#c02a30,#7a1717); border:1.5px solid var(--gold); box-shadow:0 4px 8px -3px rgba(0,0,0,.6); white-space:nowrap; }
+.world-banner.left{ left:4px; } .world-banner.right{ right:4px; }
+@media (prefers-reduced-motion:reduce){ .avatar{ animation:none; transition:none; } }
+
 /* iOS install gate (blocks play until added to home screen) */
 .iosgate{ position:fixed; inset:0; z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
   background:radial-gradient(circle at 50% 0%, #4a1a1a, transparent 60%), var(--bg); padding:24px;
