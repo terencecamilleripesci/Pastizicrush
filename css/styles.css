@@ -220,12 +220,29 @@ body.playing .homebtn{ display:block; }    /* home only while playing */
 .btn{ background:var(--red); color:#fff; border:0; border-radius:999px; padding:14px 34px; font:inherit; font-weight:800; font-size:1.05rem; letter-spacing:.5px; cursor:pointer; box-shadow:0 8px 20px -8px rgba(181,35,42,.7); transition:transform .15s; }
 .btn:hover{ transform:translateY(-2px); }
 .btn-ghost{ background:transparent; color:var(--muted); box-shadow:none; padding:8px 20px; font-size:.92rem; margin-top:6px; }
-.ov-stars{ margin:2px 0 -2px; height:2.8rem; }
+.ov-stars{ position:relative; margin:2px 0 -2px; height:3rem; }
 .ov-stars.hide{ display:none; }
-.ov-stars b{ display:inline-block; font-size:2.3rem; margin:0 2px; color:rgba(120,90,40,.3); animation:starpop .5s cubic-bezier(.2,1.6,.4,1) both; }
+.ov-stars b{ position:relative; z-index:1; display:inline-block; font-size:2.3rem; margin:0 2px; color:rgba(120,90,40,.3); animation:starpop .55s cubic-bezier(.2,1.7,.4,1) both; }
 .ov-stars b.on{ color:var(--gold); text-shadow:0 2px 0 #00000030, 0 0 16px rgba(255,210,90,.85); }
-.ov-stars b:nth-child(2){ font-size:2.9rem; margin-top:-8px; }
-@keyframes starpop{ 0%{ transform:scale(0) rotate(-45deg); opacity:0 } 100%{ transform:scale(1) rotate(0); opacity:1 } }
+.ov-stars b:nth-child(3){ font-size:2.9rem; margin-top:-8px; }
+@keyframes starpop{ 0%{ transform:scale(0) rotate(-160deg); opacity:0 } 60%{ transform:scale(1.35) rotate(10deg) } 100%{ transform:scale(1) rotate(0); opacity:1 } }
+/* rotating festa rays behind the stars */
+.ov-rays{ position:absolute; left:50%; top:50%; width:190px; height:190px; transform:translate(-50%,-50%); z-index:0; pointer-events:none;
+  background:repeating-conic-gradient(rgba(232,181,74,.28) 0 11deg, transparent 11deg 30deg);
+  -webkit-mask-image:radial-gradient(circle, #000 18%, transparent 68%); mask-image:radial-gradient(circle, #000 18%, transparent 68%);
+  animation:raysSpin 9s linear infinite; }
+@keyframes raysSpin{ to{ transform:translate(-50%,-50%) rotate(360deg) } }
+/* win panel: entrance bounce + count-up score + coin fly-in */
+.panel.pop{ animation:panelPop .5s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes panelPop{ 0%{ transform:scale(.6); opacity:0 } 100%{ transform:scale(1); opacity:1 } }
+.panel .emoji{ display:inline-block; animation:emojiBounce 1.6s ease-in-out infinite; }
+@keyframes emojiBounce{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
+.ov-score{ margin:12px auto 4px; }
+.ov-score small{ display:block; font-size:.62rem; letter-spacing:2px; color:var(--muted); font-weight:800; }
+.ov-score b{ font-size:2.1rem; font-weight:900; color:var(--ink); font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#8a5a10,#c2801b); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.ov-coins{ opacity:0; transform:translateY(12px) scale(.8); margin-top:4px; font-weight:800; color:#9c6f15; transition:all .4s cubic-bezier(.2,1.5,.4,1); }
+.ov-coins.show{ opacity:1; transform:none; }
 
 /* lives + coins meta bar (map) */
 .meta-bar{ display:flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 10px; flex-wrap:wrap; }

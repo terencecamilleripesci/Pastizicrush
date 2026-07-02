@@ -105,6 +105,7 @@
   };
 
   const NOLOOP = /[?&]t=1/.test(location.search); // headless-test flag: skip perpetual timers
+  const WINTEST = /[?&]win=1/.test(location.search); // test flag: any match wins (win-screen preview)
   const board = $('board');
   let grid = [], cell = 56, busy = false, selected = null, down = null, lastSwap = new Set();
   let level = 1, moves = 20, score = 0, target = 1000, best = +(localStorage.getItem('pc_best') || 0);
@@ -170,7 +171,19 @@
     start: () => { [0, 2, 4].forEach((s, i) => setTimeout(() => note(s + 2, .11, .16), i * 65)); },
     // triumphant rising triad fanfare
     win: () => { [[0, 2, 4], [2, 4, 6], [4, 6, 8]].forEach((ch, i) => setTimeout(() => ch.forEach(s => note(s, .3, .15)), i * 150)); setTimeout(() => { note(9, .5, .2); note(11, .5, .12, 'sine'); }, 500); },
+    coin: () => { beep(1180, .09, 'square', .12, 1560); setTimeout(() => beep(1560, .14, 'square', .1, 1880), 70); },
   };
+  // animated number count-up (eased) for the win screen
+  function countUp(el, to, ms) {
+    if (!el) return; let t0 = null;
+    function tick(now) {
+      if (t0 == null) t0 = now;
+      const p = Math.max(0, Math.min(1, (now - t0) / ms)), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(to * e).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick); else el.textContent = to.toLocaleString();
+    }
+    requestAnimationFrame(tick);
+  }
 
   /* ---------- background music (procedural, no files) ---------- */
   // Warm Mediterranean loop: soft pad + plucked arpeggio + bass + gentle melody. Pure WebAudio (offline).
@@ -583,7 +596,11 @@
     let k = 0; const next = () => { if (k >= urls.length) return; const im = new Image(); im.onload = im.onerror = next; im.src = urls[k++]; };
     next(); next(); // two at a time, off the critical path
   }
-  function showOverlay(emoji, title, text, btn, action) { $('ovEmoji').textContent = emoji; $('ovStars').classList.add('hide'); $('ovTitle').textContent = title; $('ovText').innerHTML = text; $('ovBtn').textContent = btn; overlayAction = action; $('overlay').classList.remove('hide'); }
+  function showOverlay(emoji, title, text, btn, action) {
+    $('ovEmoji').textContent = emoji; $('ovStars').classList.add('hide'); $('ovTitle').textContent = title; $('ovText').innerHTML = text; $('ovBtn').textContent = btn; overlayAction = action;
+    const pn = $('overlay').querySelector('.panel'); pn.classList.remove('win', 'pop'); void pn.offsetWidth; pn.classList.add('pop');  // re-trigger entrance bounce
+    $('overlay').classList.remove('hide');
+  }
   // frame colour matched to each world's scene (not random — keeps it consistent with the background)
   const WORLD_FRAME = ['#e8b54a', '#e6b24a', '#8f9be0', '#37b0be', '#8cb84a', '#3fc4d4', '#efc24a', '#6fa0c8', '#e0a24a', '#d99a3a'];
   // per-world in-game background pools (random variant each play); worlds without a pool fall back to their map scene
@@ -593,6 +610,7 @@
   ];
   async function startLevel() {
     const cfg = levelCfg(level); mode = cfg.type || 'score'; target = cfg.target || 0; moves = cfg.moves; score = 0; selected = null;
+    if (WINTEST) { mode = 'score'; target = 1; }
     // in-game background = the world you're playing (world 1 has 5 variants → different each play)
     const gw = Math.floor((level - 1) / WORLD_SIZE);
     const igPool = IG_POOLS[gw] || ['assets/world' + (gw + 1) + '.jpg'];
@@ -624,9 +642,17 @@
       saveStars(level, st); unlockNext(level);
       const reward = 20 + st * 15; addCoins(reward);
       sfx.win(); confettiRain(); festaFireworks(true); setTimeout(() => playVoice('mela', 1), 220); if (navigator.vibrate) try { navigator.vibrate([40, 30, 90]); } catch { }
-      showOverlay('🎉', `Level ${level} cleared!`, `${goalMsg}<br>🪙 <b>+${reward}</b> coins`, 'Next level', 'next');
-      $('ovStars').innerHTML = [0, 1, 2].map(i => `<b class="${i < st ? 'on' : 'off'}" style="animation-delay:${(i * 0.2).toFixed(2)}s">★</b>`).join('');
+      showOverlay('🎉', `Level ${level} cleared!`,
+        `${goalMsg}<div class="ov-score"><small>SCORE</small><b id="ovScoreNum">0</b></div><div class="ov-coins" id="ovCoins">🪙 <b>+0</b> coins</div>`,
+        'Next level', 'next');
+      $('overlay').querySelector('.panel').classList.add('win');
+      $('ovStars').innerHTML = '<span class="ov-rays"></span>' + [0, 1, 2].map(i => `<b class="${i < st ? 'on' : 'off'}" style="animation-delay:${(i * 0.28).toFixed(2)}s">★</b>`).join('');
       $('ovStars').classList.remove('hide');
+      // star dings (rising pitch) in sync with each star popping in
+      for (let i = 0; i < st; i++) setTimeout(() => { beep(660 + i * 180, .22, 'triangle', .3, 880 + i * 220); if (navigator.vibrate) try { navigator.vibrate(18); } catch { } }, 300 + i * 280);
+      // score count-up, then coins fly in
+      countUp($('ovScoreNum'), score, 900);
+      setTimeout(() => { const c = $('ovCoins'); if (c) { c.classList.add('show'); c.querySelector('b').textContent = '+' + reward; sfx.coin && sfx.coin(); } }, 1000);
     }
     else if (moves <= 0) {
       loseLife(); renderMeta();
