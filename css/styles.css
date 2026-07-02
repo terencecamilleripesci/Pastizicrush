@@ -30,6 +30,7 @@ body.playing::before, body.on-map::before{ display:none; }
 
 /* HUD */
 .hud{ width:min(100%,460px); }
+body.playing .title{ display:none; }   /* in play, the board gets the space — brand lives on the menu */
 .title{ text-align:center; font-size:1.85rem; font-weight:900; letter-spacing:.5px; margin:2px 0 9px;
   background:linear-gradient(180deg,#fff3c4,#f3b63e 58%,#d98f22); -webkit-background-clip:text; background-clip:text; color:transparent;
   filter:drop-shadow(0 2px 0 rgba(0,0,0,.35)) drop-shadow(0 0 12px rgba(232,181,74,.4)); }
@@ -53,7 +54,7 @@ body.playing{ background:#20100c; }   /* dark base while playing so nothing red 
 #gamebg::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,8,8,.5), rgba(20,8,8,.35) 40%, rgba(20,8,8,.62)); }
 body.playing #gamebg{ display:block; }
 /* board fits the level shape: no square box — each playable cell gets its own slot */
-.board{ position:relative; width:min(100%, calc(100svh - 288px)); aspect-ratio:1; margin:0 auto;
+.board{ position:relative; width:min(100%, calc(100svh - 248px)); aspect-ratio:1; margin:0 auto;
   background:transparent; border:none; box-shadow:none;
   touch-action:none; overflow:hidden; perspective:820px; }
 .slot{ position:absolute; top:0; left:0; border-radius:17px; z-index:0; pointer-events:none;
@@ -366,10 +367,10 @@ body.playing .gamegear{ display:block; }
 .wnav.prev{ left:6px; } .wnav.next{ right:6px; }
 .wnav:disabled{ opacity:.25; pointer-events:none; }
 .menu{ position:fixed; inset:0; z-index:45; display:flex; flex-direction:column; align-items:center; overflow:hidden;
+  /* bakery scene behind the menu, warmly dimmed so the logo & panels pop */
   background:
-    radial-gradient(120% 42% at 50% -12%, rgba(96,166,214,.28), transparent 46%),
-    radial-gradient(120% 55% at 50% -8%, rgba(232,181,74,.22), transparent 55%),
-    radial-gradient(100% 55% at 50% 108%, #5f2019, transparent 55%),
+    linear-gradient(180deg, rgba(32,12,10,.72), rgba(38,15,13,.55) 40%, rgba(26,10,9,.82)),
+    url(../assets/world1.jpg) center 20% / cover no-repeat,
     linear-gradient(180deg,#3a1512,#260f0d);
   padding:calc(56px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom)); }
 .menu.hide{ display:none; }
