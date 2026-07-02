@@ -638,7 +638,7 @@
     else scheduleHint();   // still playing → nudge a move after a few idle seconds
   }
   /* ---------- level-select map + progress ---------- */
-  const MAXLEVELS = 40, WORLD_SIZE = 5;
+  const MAXLEVELS = 50, WORLD_SIZE = 5;   // 10 worlds × 5 levels — uses all world art
   const WORLD_NAMES = ['Village Bakery', 'Valletta Streets', 'Mdina Night', 'Marsaxlokk Market', 'Gozo Farm', 'Blue Lagoon', 'Festa Week', 'Three Cities', 'Dingli Cliffs', 'Pastizzi Factory'];
   const getUnlocked = () => Math.max(1, +(localStorage.getItem('pc_unlocked') || 1));
   const getStars = () => { try { return JSON.parse(localStorage.getItem('pc_stars') || '{}'); } catch { return {}; } };
