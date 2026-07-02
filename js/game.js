@@ -957,7 +957,7 @@
     document.querySelectorAll('.boost').forEach(bt => bt.addEventListener('click', () => useBooster(bt.dataset.b)));
     const hb = $('home'); if (hb) hb.addEventListener('click', goHome);
     const gg = $('gameGear'); if (gg) gg.addEventListener('click', openSettings);   // settings while playing
-    if (!NOLOOP) setTimeout(preloadArt, 1200);                                       // warm the art cache off the critical path
+    if (!NOLOOP) setTimeout(() => (window.requestIdleCallback || setTimeout)(preloadArt), 4000); // warm the art cache well off the critical path
     $('mapPlay').addEventListener('click', () => playLevel(Math.min(getUnlocked(), MAXLEVELS)));
     $('menuPlay').addEventListener('click', openMap);
     $('mapBack').addEventListener('click', openMenu);
