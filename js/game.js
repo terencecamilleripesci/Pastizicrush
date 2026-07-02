@@ -614,7 +614,7 @@
   function checkEnd() {
     if (!$('map').classList.contains('hide')) return;   // left to the map mid-cascade — don't pop an overlay over it
     const won = mode === 'clear' ? jellyLeft <= 0 : mode === 'collect' ? collected >= collectGoal : mode === 'drop' ? dropLeft <= 0 : score >= target;
-    if (won || moves <= 0) { if (score > 0) addScore(getPlayer(), score, getAvatar()); }   // record on any level end
+    if (won || moves <= 0) { if (score > 0) { addScore(getPlayer(), score, getAvatar()); submitScore(getPlayer(), score, getAvatar()); } }   // record locally + global
     const goalMsg = mode === 'clear' ? `All cleared! Score <b>${score.toLocaleString()}</b>.`
       : mode === 'collect' ? `Collected all ${collectGoal} ${pieceMini(collectType)}!`
         : mode === 'drop' ? `All luzzi delivered! ⛵` : `You scored <b>${score.toLocaleString()}</b>.`;
@@ -769,10 +769,48 @@
     localStorage.setItem('pc_scores', JSON.stringify(s));
   }
   const escapeHtml = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* ---------- live global leaderboard (Supabase) ---------- */
+  const SB_URL = 'https://csdyjpqsqhckkxoelcsb.supabase.co';
+  const SB_KEY = 'sb_publishable_avv2K59xJXLV3p0A7_xmOg_WxgCm9Zw';   // publishable — safe to embed
+  const sbHeaders = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+  function submitScore(name, score, av) {
+    if (!score || NOLOOP) return;
+    const row = { name: String(name).slice(0, 12), avatar: av || '🥟', score: Math.floor(score) };
+    fetch(SB_URL + '/rest/v1/scores', { method: 'POST', headers: sbHeaders, body: JSON.stringify(row) })
+      .then(r => { if (!r.ok) throw 0; flushScoreQueue(); })
+      .catch(() => { // offline / table missing → queue and retry later
+        try { const q = JSON.parse(localStorage.getItem('pc_squeue') || '[]'); q.push(row); localStorage.setItem('pc_squeue', JSON.stringify(q.slice(-20))); } catch { }
+      });
+  }
+  function flushScoreQueue() {
+    let q = []; try { q = JSON.parse(localStorage.getItem('pc_squeue') || '[]'); } catch { }
+    if (!q.length) return; localStorage.setItem('pc_squeue', '[]');
+    q.forEach(row => fetch(SB_URL + '/rest/v1/scores', { method: 'POST', headers: sbHeaders, body: JSON.stringify(row) }).catch(() => {
+      try { const q2 = JSON.parse(localStorage.getItem('pc_squeue') || '[]'); q2.push(row); localStorage.setItem('pc_squeue', JSON.stringify(q2.slice(-20))); } catch { }
+    }));
+  }
+  async function fetchGlobalScores() {
+    const r = await fetch(SB_URL + '/rest/v1/scores?select=name,avatar,score&order=score.desc&limit=120', { headers: sbHeaders });
+    if (!r.ok) throw 0;
+    const rows = await r.json();
+    const best = {};   // best score per player name
+    rows.forEach(e => { if (!best[e.name] || e.score > best[e.name].score) best[e.name] = { name: e.name, av: e.avatar || '🥟', score: e.score }; });
+    return Object.values(best).sort((a, b) => b.score - a.score).slice(0, 50);
+  }
+  function lbRows(list, me) {
+    return list.map((e, i) => `<div class="lb-row${e.name === me ? ' me' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-av">${e.av || '🥟'}</span><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${(e.score || 0).toLocaleString()}</span></div>`).join('');
+  }
   function renderLeaderboard() {
     const el = $('leaderList'); if (!el) return;
-    const me = getPlayer(), s = getScores().slice(0, 8);
-    el.innerHTML = s.map((e, i) => `<div class="lb-row${e.name === me ? ' me' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-av">${e.av || '🥟'}</span><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${(e.score || 0).toLocaleString()}</span></div>`).join('') || '<div class="lb-empty">No scores yet — play to get on the board!</div>';
+    const me = getPlayer();
+    el.innerHTML = lbRows(getScores().slice(0, 8), me) || '<div class="lb-empty">No scores yet — play to get on the board!</div>';
+    if (NOLOOP) return;
+    fetchGlobalScores().then(list => {
+      if (!list.length) return;
+      el.innerHTML = lbRows(list, me);
+      const note = document.querySelector('.lb-note'); if (note) note.textContent = '🌍 Live — players everywhere';
+    }).catch(() => { });   // offline / table not ready → local board stays
   }
 
   /* ---------- lives + coins meta ---------- */
@@ -958,6 +996,7 @@
     const hb = $('home'); if (hb) hb.addEventListener('click', goHome);
     const gg = $('gameGear'); if (gg) gg.addEventListener('click', openSettings);   // settings while playing
     if (!NOLOOP) setTimeout(() => (window.requestIdleCallback || setTimeout)(preloadArt), 4000); // warm the art cache well off the critical path
+    if (!NOLOOP) { flushScoreQueue(); window.addEventListener('online', flushScoreQueue); }      // send any queued scores
     $('mapPlay').addEventListener('click', () => playLevel(Math.min(getUnlocked(), MAXLEVELS)));
     $('menuPlay').addEventListener('click', openMap);
     $('mapBack').addEventListener('click', openMenu);
